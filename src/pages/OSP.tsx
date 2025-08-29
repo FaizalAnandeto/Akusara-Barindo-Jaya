@@ -413,20 +413,25 @@ const OSP = () => {
         <div class="relative z-10">
           <h1 class="text-3xl font-bold text-white mb-2">OSP Management</h1>
           <p class="text-purple-100 text-lg">
-            Kelola Optical Splitter Panel, task assignment, dan monitoring jaringan fiber optik
+            Kelola Optical Splitter Panel, task assignment, dan monitoring
+            jaringan fiber optik
           </p>
         </div>
         {/* Background Icon */}
         <div class="absolute right-8 top-1/2 transform -translate-y-1/2 opacity-20">
-          <svg class="w-24 h-24 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            <circle cx="9" cy="9" r="2"/>
-            <circle cx="15" cy="15" r="2"/>
-            <path d="M9 9h6m-3-3v6"/>
+          <svg
+            class="w-24 h-24 text-white"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+            <circle cx="9" cy="9" r="2" />
+            <circle cx="15" cy="15" r="2" />
+            <path d="M9 9h6m-3-3v6" />
           </svg>
         </div>
       </div>
-      
+
       <OSPContent />
     </Layout>
   );

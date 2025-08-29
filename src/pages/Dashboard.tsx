@@ -315,7 +315,8 @@ const Dashboard = () => {
             <div>
               <h1 class="text-3xl font-bold mb-2">Dashboard Overview</h1>
               <p class="text-blue-100 text-lg">
-                Monitor sistem keamanan, performa jaringan, dan aktivitas real-time
+                Monitor sistem keamanan, performa jaringan, dan aktivitas
+                real-time
               </p>
             </div>
             <div class="text-6xl opacity-20">

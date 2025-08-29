@@ -1013,7 +1013,8 @@ const Settings: Component = () => {
             <div>
               <h1 class="text-3xl font-bold mb-2">Settings & Preferences</h1>
               <p class="text-slate-100 text-lg">
-                Kelola pengaturan akun, preferensi sistem, dan konfigurasi aplikasi
+                Kelola pengaturan akun, preferensi sistem, dan konfigurasi
+                aplikasi
               </p>
             </div>
             <div class="text-6xl opacity-20">
@@ -1044,4 +1045,5 @@ const Settings: Component = () => {
       </div>
     </Layout>
   );
-};export default Settings;
+};
+export default Settings;
