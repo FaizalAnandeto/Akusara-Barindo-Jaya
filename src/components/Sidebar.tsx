@@ -1,4 +1,5 @@
 import { For } from "solid-js";
+import { A } from "@solidjs/router";
 import NavigationItem from "./NavigationItem";
 
 // Sidebar Component
@@ -104,12 +105,18 @@ const Sidebar = (props) => {
 
       {/* Admin Panel - Fixed at bottom of sidebar */}
       <div class={`${props.isOpen ? "p-3" : "p-2"} flex-shrink-0`}>
-        <div
-          class={`transition-all duration-300 rounded-xl flex items-center
+        <A
+          href="/profile"
+          class={`transition-all duration-300 rounded-xl flex items-center no-underline cursor-pointer hover:bg-slate-800/60 relative group
           ${
             props.isOpen
-              ? "bg-slate-800/40 border border-slate-700/50 p-3 hover:bg-slate-800/60"
+              ? "bg-slate-800/40 border border-slate-700/50 p-3"
               : "justify-center p-1"
+          }
+          ${
+            props.activeSection() === "profile"
+              ? "bg-slate-700/60 border-slate-600"
+              : ""
           }
         `}
         >
@@ -136,7 +143,19 @@ const Sidebar = (props) => {
               Admin@app.com
             </div>
           </div>
-        </div>
+
+          {/* Tooltip for collapsed state */}
+          {!props.isOpen && (
+            <div class="absolute left-16 bg-slate-800 text-white px-3 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 whitespace-nowrap border border-slate-700">
+              <div class="font-medium text-sm">User Profile</div>
+              <div class="text-xs text-blue-200 mt-0.5">
+                View and edit profile
+              </div>
+              {/* Arrow */}
+              <div class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-slate-800 rotate-45 border-l border-b border-slate-700"></div>
+            </div>
+          )}
+        </A>
       </div>
     </div>
   );

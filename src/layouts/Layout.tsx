@@ -17,43 +17,8 @@ const Layout = (props) => {
     if (pathname === "/security") return "security";
     if (pathname === "/finance") return "finance";
     if (pathname === "/settings") return "settings";
+    if (pathname === "/profile") return "profile";
     return "dashboard";
-  };
-
-  const getCurrentPageTitle = () => {
-    const activeSection = getActiveSection();
-    switch (activeSection) {
-      case "dashboard":
-        return "Dashboard OSP Smartelco IT";
-      case "osp":
-        return "OSP - Report & Task Management";
-      case "security":
-        return "Security Management";
-      case "finance":
-        return "Finance Management";
-      case "settings":
-        return "System Settings";
-      default:
-        return "Dashboard OSP Smartelco IT";
-    }
-  };
-
-  const getCurrentPageDescription = () => {
-    const activeSection = getActiveSection();
-    switch (activeSection) {
-      case "dashboard":
-        return "Sistem monitoring dan manajemen infrastruktur IT untuk PT Akusara Barindo Jaya";
-      case "osp":
-        return "Operational Support Platform untuk manajemen task, monitoring, dan reporting infrastruktur IT";
-      case "security":
-        return "Security monitoring, CCTV management, dan face recognition system";
-      case "finance":
-        return "Financial management system untuk payments dan fees";
-      case "settings":
-        return "User profile dan system preferences configuration";
-      default:
-        return "Sistem monitoring dan manajemen infrastruktur IT untuk PT Akusara Barindo Jaya";
-    }
   };
 
   return (
@@ -69,12 +34,6 @@ const Layout = (props) => {
             sidebarOpen() ? "ml-72" : "ml-16"
           }`}
         >
-          <div class="bg-neutral-100 p-8 rounded-2xl mb-8 shadow-2xl border border-neutral-100">
-            <h1 class="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              {getCurrentPageTitle()}
-            </h1>
-            <p class="text-neutral-600">{getCurrentPageDescription()}</p>
-          </div>
           {props.children}
         </div>
       </div>
