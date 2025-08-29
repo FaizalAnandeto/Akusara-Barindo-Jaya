@@ -5,17 +5,55 @@ const SignIn = () => {
   const [email, setEmail] = createSignal('');
   const [password, setPassword] = createSignal('');
   const [rememberMe, setRememberMe] = createSignal(false);
+  const [showValidationMessage, setShowValidationMessage] = createSignal('');
   const navigate = useNavigate();
+
+  // Validate email format
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Check if form is valid
+  const isFormValid = () => {
+    return email().trim() !== '' && password().trim() !== '' && isValidEmail(email());
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    if (!isFormValid()) {
+      if (email().trim() === '' || password().trim() === '') {
+        setShowValidationMessage('Mohon isi semua field yang diperlukan!');
+      } else if (!isValidEmail(email())) {
+        setShowValidationMessage('Format email tidak valid!');
+      }
+      // Hide message after 3 seconds
+      setTimeout(() => setShowValidationMessage(''), 3000);
+      return;
+    }
+
+    setShowValidationMessage('');
     console.log('Login attempt:', {
       email: email(),
       password: password(),
       rememberMe: rememberMe()
     });
     // Add your authentication logic here
-    // navigate('/dashboard');
+    navigate('/dashboard');
+  };
+
+  const handleButtonClick = () => {
+    if (!isFormValid()) {
+      if (email().trim() === '' || password().trim() === '') {
+        setShowValidationMessage('Mohon isi semua field yang diperlukan!');
+      } else if (!isValidEmail(email())) {
+        setShowValidationMessage('Format email tidak valid!');
+      }
+      setTimeout(() => setShowValidationMessage(''), 3000);
+      return;
+    }
+    navigate('/dashboard');
   };
 
   // Using the actual housing aerial photo as background
@@ -84,6 +122,13 @@ const SignIn = () => {
               <h2 class="text-6xl font-bold text-blue-600/75 dark:text-sky-500/75 mb-2 font-inter">Sign In</h2>
             </div>
 
+            {/* Validation Message */}
+            {showValidationMessage() && (
+              <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center">
+                <span class="text-sm">{showValidationMessage()}</span>
+              </div>
+            )}
+
             {/* Sign In Form */}
             <form onSubmit={handleSubmit} class="space-y-6">
 
@@ -117,7 +162,7 @@ const SignIn = () => {
               <button
                 type="submit"
                 class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-4 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-300 shadow-lg hover:shadow-xl font-inter focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-                onClick={() => navigate('/dashboard')}
+                onClick={handleButtonClick}
               >
                 Sign In
               </button>

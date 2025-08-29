@@ -8,22 +8,57 @@ const SignUp = () => {
   const [password, setPassword] = createSignal('');
   const [confirmPassword, setConfirmPassword] = createSignal('');
   const [agreeTerms, setAgreeTerms] = createSignal(false);
+  const [showValidationMessage, setShowValidationMessage] = createSignal('');
   const navigate = useNavigate();
+
+  // Validate email format
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Validate phone format (must contain numbers)
+  const isValidPhone = (phone) => {
+    const phoneRegex = /^[0-9+\-\s]+$/;
+    return phoneRegex.test(phone) && phone.replace(/[^0-9]/g, '').length > 0;
+  };
+
+  // Check if form is valid
+  const isFormValid = () => {
+    return (
+      fullName().trim() !== '' &&
+      email().trim() !== '' &&
+      phone().trim() !== '' &&
+      password().trim() !== '' &&
+      confirmPassword().trim() !== '' &&
+      isValidEmail(email()) &&
+      isValidPhone(phone()) &&
+      password() === confirmPassword() &&
+      agreeTerms()
+    );
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Basic validation
-    if (password() !== confirmPassword()) {
-      alert('Password tidak cocok!');
-      return;
-    }
-    
-    if (!agreeTerms()) {
-      alert('Harap setujui syarat dan ketentuan!');
+    if (!isFormValid()) {
+      if (fullName().trim() === '' || email().trim() === '' || phone().trim() === '' || password().trim() === '' || confirmPassword().trim() === '') {
+        setShowValidationMessage('Mohon isi semua field yang diperlukan!');
+      } else if (!isValidEmail(email())) {
+        setShowValidationMessage('Format email tidak valid!');
+      } else if (!isValidPhone(phone())) {
+        setShowValidationMessage('Nomor telepon harus berisi angka!');
+      } else if (password() !== confirmPassword()) {
+        setShowValidationMessage('Password tidak cocok!');
+      } else if (!agreeTerms()) {
+        setShowValidationMessage('Harap setujui syarat dan ketentuan!');
+      }
+      
+      setTimeout(() => setShowValidationMessage(''), 3000);
       return;
     }
 
+    setShowValidationMessage('');
     console.log('Register attempt:', {
       fullName: fullName(),
       email: email(),
@@ -33,7 +68,27 @@ const SignUp = () => {
     });
     
     // Add your registration logic here
-    // navigate('/sign-in');
+    navigate('/dashboard');
+  };
+
+  const handleButtonClick = () => {
+    if (!isFormValid()) {
+      if (fullName().trim() === '' || email().trim() === '' || phone().trim() === '' || password().trim() === '' || confirmPassword().trim() === '') {
+        setShowValidationMessage('Mohon isi semua field yang diperlukan!');
+      } else if (!isValidEmail(email())) {
+        setShowValidationMessage('Format email tidak valid!');
+      } else if (!isValidPhone(phone())) {
+        setShowValidationMessage('Nomor telepon harus berisi angka!');
+      } else if (password() !== confirmPassword()) {
+        setShowValidationMessage('Password tidak cocok!');
+      } else if (!agreeTerms()) {
+        setShowValidationMessage('Harap setujui syarat dan ketentuan!');
+      }
+      
+      setTimeout(() => setShowValidationMessage(''), 3000);
+      return;
+    }
+    navigate('/dashboard');
   };
 
   // Using the actual housing aerial photo as background
@@ -102,6 +157,13 @@ const SignUp = () => {
               <h2 class="text-6xl font-bold text-blue-600/75 dark:text-sky-500/75 mb-2 font-inter">Sign Up</h2>
               <p class="text-white pl-2 text-opacity-80">new account.</p>
             </div>
+
+            {/* Validation Message */}
+            {showValidationMessage() && (
+              <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center">
+                <span class="text-sm">{showValidationMessage()}</span>
+              </div>
+            )}
 
             {/* Sign Up Form */}
             <form onSubmit={handleSubmit} class="space-y-4">
@@ -194,7 +256,7 @@ const SignUp = () => {
               <button
                 type="submit"
                 class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-300 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 mt-1"
-                onClick={() => navigate('/dashboard')}
+                onClick={handleButtonClick}
               >
                 Daftar Sekarang
               </button>
