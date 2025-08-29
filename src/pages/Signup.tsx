@@ -194,6 +194,7 @@ const SignUp = () => {
               <button
                 type="submit"
                 class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-300 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 mt-1"
+                onClick={() => navigate('/dashboard')}
               >
                 Daftar Sekarang
               </button>

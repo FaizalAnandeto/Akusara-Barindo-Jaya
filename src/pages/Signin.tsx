@@ -117,6 +117,7 @@ const SignIn = () => {
               <button
                 type="submit"
                 class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-4 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-300 shadow-lg hover:shadow-xl font-inter focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                onClick={() => navigate('/dashboard')}
               >
                 Sign In
               </button>
