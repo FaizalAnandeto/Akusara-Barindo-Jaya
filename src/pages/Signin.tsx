@@ -1,16 +1,50 @@
-import { createSignal } from "solid-js";
+import { createSignal, onMount, onCleanup } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useSettings } from "../contexts/SettingsContext";
 
 const SignIn = () => {
   const { t } = useLanguage();
+  const { settings, setTheme } = useSettings();
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [rememberMe, setRememberMe] = createSignal(false);
   const [showValidationMessage, setShowValidationMessage] = createSignal("");
   const navigate = useNavigate();
 
-  // Validate email format
+  // Force dark theme for sign-in page only
+  onMount(() => {
+    // Save current theme state from settings context
+    const currentTheme = settings().theme;
+    sessionStorage.setItem('previous-theme', currentTheme);
+    
+    // Force dark theme for sign-in page
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+    
+    // Apply sign-in specific styles to body
+    document.body.classList.add('signin-page');
+    document.body.style.background = 'linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%)';
+  });
+
+  onCleanup(() => {
+    // Restore previous theme when leaving sign-in page
+    const previousTheme = sessionStorage.getItem('previous-theme') || 'light';
+    
+    // Remove sign-in specific styling
+    document.body.classList.remove('signin-page');
+    document.body.style.background = '';
+    
+    // Restore theme using SettingsContext to ensure proper state management
+    if (previousTheme === 'light' || previousTheme === 'dark') {
+      setTheme(previousTheme as 'light' | 'dark');
+    }
+    
+    // Clean up session storage
+    sessionStorage.removeItem('previous-theme');
+  });
+
+// Validate email format
   const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -43,8 +77,27 @@ const SignIn = () => {
       password: password(),
       rememberMe: rememberMe(),
     });
-    // Add your authentication logic here
-    navigate("/dashboard");
+    
+    // Restore previous theme before navigation using SettingsContext
+    const previousTheme = sessionStorage.getItem('previous-theme') || 'light';
+    
+    // Remove sign-in specific styling
+    document.body.classList.remove('signin-page');
+    document.body.style.background = '';
+    
+    // Restore theme using SettingsContext to ensure proper state management
+    if (previousTheme === 'light' || previousTheme === 'dark') {
+      setTheme(previousTheme as 'light' | 'dark');
+    }
+    
+    // Clean up session storage
+    sessionStorage.removeItem('previous-theme');
+    
+    // Small delay to ensure theme is applied before navigation
+    setTimeout(() => {
+      // Add your authentication logic here
+      navigate("/dashboard");
+    }, 50);
   };
 
   const handleButtonClick = () => {
@@ -57,7 +110,26 @@ const SignIn = () => {
       setTimeout(() => setShowValidationMessage(""), 3000);
       return;
     }
-    navigate("/dashboard");
+    
+    // Restore previous theme before navigation using SettingsContext
+    const previousTheme = sessionStorage.getItem('previous-theme') || 'light';
+    
+    // Remove sign-in specific styling
+    document.body.classList.remove('signin-page');
+    document.body.style.background = '';
+    
+    // Restore theme using SettingsContext to ensure proper state management
+    if (previousTheme === 'light' || previousTheme === 'dark') {
+      setTheme(previousTheme as 'light' | 'dark');
+    }
+    
+    // Clean up session storage
+    sessionStorage.removeItem('previous-theme');
+    
+    // Small delay to ensure theme is applied before navigation
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 50);
   };
 
   // Modern gradient background instead of image

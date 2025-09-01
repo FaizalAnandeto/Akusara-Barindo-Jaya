@@ -1,7 +1,11 @@
 import { createSignal } from "solid-js";
 import { useNavigate } from "@solidjs/router";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useSettings } from "../contexts/SettingsContext";
 
 const SignUp = () => {
+  const { t } = useLanguage();
+  const { settings } = useSettings();
   const [fullName, setFullName] = createSignal("");
   const [email, setEmail] = createSignal("");
   const [phone, setPhone] = createSignal("");

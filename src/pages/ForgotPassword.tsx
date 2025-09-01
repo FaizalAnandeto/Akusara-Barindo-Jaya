@@ -1,7 +1,11 @@
 import { createSignal } from "solid-js";
 import { useNavigate } from "@solidjs/router";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useSettings } from "../contexts/SettingsContext";
 
 const ForgotPassword = () => {
+  const { t } = useLanguage();
+  const { settings } = useSettings();
   const [email, setEmail] = createSignal("");
   const [isSubmitted, setIsSubmitted] = createSignal(false);
   const [showValidationMessage, setShowValidationMessage] = createSignal("");
