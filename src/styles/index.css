@@ -1,27 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:wght@300;400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
-@theme {
-    --font-inter: "Inter", sans-serif;
-  
-  --color-primary: #1e3a8a;
-  --color-primary-dark: #1e40af;
+/* Global typography */
+* {
+  font-family: "Poppins", sans-serif;
+}
 
-  --color-secondary: #475569;
-  --color-secondary-dark: #334155;
-
-  --color-accent-emerald: #059669;
-  --color-accent-amber: #f59e0b;
-  --color-accent-rose: #e11d48;
-
-  --color-neutral-50: #f8fafc;
-  --color-neutral-100: #f1f5f9;
-  --color-neutral-600: #475569;
-  --color-neutral-900: #0f172a;
-
-  --color-sidebar: #1e293b;
-
-  --color-orange-500: #f97316;
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
 }
 
 /* Hide scrollbar for navigation */
@@ -32,4 +19,116 @@
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Custom gradient backgrounds */
+.bg-card-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.shadow-card {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Force white background for cards in light mode */
+html:not(.dark) [class*="bg-white"] {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) [class*="text-gray-900"] {
+  color: #111827 !important;
+}
+
+html:not(.dark) [class*="text-gray-600"] {
+  color: #6b7280 !important;
+}
+
+html:not(.dark) [class*="border-gray-200"] {
+  border-color: #e5e7eb !important;
+}
+
+/* Specific card styling for light mode */
+html:not(.dark) .theme-card {
+  background-color: #ffffff !important; /* Pure white for better contrast */
+  color: #000000 !important;
+  border-color: #d1d5db !important; /* Slightly darker border */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+html:not(.dark) .theme-text-primary {
+  color: #111827 !important; /* Very dark gray for maximum contrast */
+}
+
+html:not(.dark) .theme-text-secondary {
+  color: #374151 !important; /* Darker gray for better readability */
+}
+
+html:not(.dark) .theme-text-tertiary {
+  color: #6b7280 !important; /* Medium gray for subtle text */
+}
+
+/* Dark mode styling */
+html.dark .theme-card {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+html.dark .theme-text-primary {
+  color: #ffffff !important;
+}
+
+html.dark .theme-text-secondary {
+  color: #94a3b8 !important;
+}
+
+html.dark .theme-text-tertiary {
+  color: #cbd5e1 !important;
+}
+
+/* Additional utility classes for better theming */
+html:not(.dark) .theme-bg-subtle {
+  background-color: #f8fafc !important;
+}
+
+html.dark .theme-bg-subtle {
+  background-color: #334155 !important;
+}
+
+html:not(.dark) .theme-border {
+  border-color: #e2e8f0 !important;
+}
+
+html.dark .theme-border {
+  border-color: #475569 !important;
+}
+
+/* Additional utility classes for buttons and backgrounds */
+html:not(.dark) .theme-bg {
+  background-color: #f8fafc !important;
+}
+
+html.dark .theme-bg {
+  background-color: #334155 !important;
+}
+
+html:not(.dark) .theme-border {
+  border-color: #e2e8f0 !important;
+}
+
+html.dark .theme-border {
+  border-color: #475569 !important;
+}
+
+/* Override for specific neutral colors */
+html:not(.dark) [class*="bg-neutral-"] {
+  background-color: #f8fafc !important;
+}
+
+html:not(.dark) [class*="text-neutral-"] {
+  color: #374151 !important;
+}
+
+html:not(.dark) [class*="border-neutral-"] {
+  border-color: #e5e7eb !important;
 }

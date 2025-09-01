@@ -1,18 +1,29 @@
-import { createSignal, onMount, For, Show } from "solid-js";
+import { createSignal, onMount, For, Show, createEffect } from "solid-js";
+import { useSettings } from "../contexts/SettingsContext";
+import { useLanguage } from "../contexts/LanguageContext";
 import Layout from "../layouts/Layout";
 
 // Status Badge Component
 const StatusBadge = (props) => {
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+  });
+
   const getStatusClass = () => {
+    const isDark = currentTheme() === 'dark';
     switch (props.status) {
       case "online":
-        return "bg-accent-emerald/20 text-accent-emerald";
+        return isDark ? "bg-emerald-900/50 text-emerald-400" : "bg-accent-emerald/20 text-accent-emerald";
       case "offline":
-        return "bg-accent-rose/20 text-accent-rose";
+        return isDark ? "bg-rose-900/50 text-rose-400" : "bg-accent-rose/20 text-accent-rose";
       case "maintenance":
-        return "bg-accent-amber/20 text-accent-amber";
+        return isDark ? "bg-amber-900/50 text-amber-400" : "bg-accent-amber/20 text-accent-amber";
       default:
-        return "bg-neutral-100 text-neutral-600";
+        return isDark ? "bg-slate-700 text-slate-300" : "bg-gray-100 text-gray-600";
     }
   };
 
@@ -40,34 +51,61 @@ const StatusBadge = (props) => {
 
 // Progress Bar Component
 const ProgressBar = (props) => {
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+  });
+
   return (
     <div class="my-5">
-      <div class="text-sm text-neutral-600 mb-2">{props.label}</div>
-      <div class="w-full h-2 bg-neutral-100 rounded-full overflow-hidden">
+      <div class="text-sm theme-text-tertiary mb-2">{props.label}</div>
+      <div class={`w-full h-2 ${currentTheme() === 'dark' ? 'bg-slate-600' : 'bg-gray-100'} rounded-full overflow-hidden`}>
         <div
           class="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300"
           style={`width: ${props.value}%;`}
         ></div>
       </div>
-      <div class="text-sm text-neutral-600 mt-1">{props.value}%</div>
+      <div class="text-sm theme-text-tertiary mt-1">{props.value}%</div>
     </div>
   );
 };
 
 // Card Component
 const Card = (props) => {
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+    console.log('Card theme updated to:', settings().theme);
+  });
+  
   return (
     <div
-      class="bg-neutral-100 rounded-2xl p-6 shadow-xl border border-neutral-100 
-      transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+      class={`theme-card rounded-lg p-6 shadow-sm border transition-all duration-300 hover:shadow-md relative overflow-hidden group`}
     >
-      {props.children}
+      <div class="relative z-10">
+        {props.children}
+      </div>
     </div>
   );
 };
 
 // Camera Monitoring Component
 const CameraMonitoring = () => {
+  const { t } = useLanguage();
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+  });
+
   const [detectedResidents, setDetectedResidents] = createSignal(3);
   const [isRecording, setIsRecording] = createSignal(true);
 
@@ -81,32 +119,38 @@ const CameraMonitoring = () => {
     <Card>
       <div class="flex justify-between items-center mb-5">
         <div>
-          <div class="text-lg font-semibold text-neutral-900 mb-1">
-            Camera Monitoring
+          <div class="text-lg font-bold theme-text-primary mb-1 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM5 8a1 1 0 000 2h8a1 1 0 100-2H5z"></path>
+            </svg>
+            {t('cameraMonitoring')}
           </div>
-          <div class="text-sm text-neutral-600">
-            {detectedResidents()} Residents Detected
+          <div class="text-sm theme-text-secondary">
+            {detectedResidents()} {t('residentsDetected')}
           </div>
         </div>
         <StatusBadge
           status={isRecording() ? "online" : "offline"}
-          activeText="Recording"
+          activeText={t('recording')}
         />
       </div>
-      <div class="w-full h-48 bg-neutral-900 rounded-lg flex items-center justify-center text-white text-sm mb-4 relative">
+      <div class={`w-full h-48 ${currentTheme() === 'dark' ? 'bg-slate-900' : 'bg-gray-800'} rounded-lg flex items-center justify-center text-white text-sm mb-4 relative`}>
         <Show when={isRecording()}>
-          <div class="absolute top-2 right-2 bg-accent-rose text-white px-2 py-1 rounded text-xs animate-pulse">
+          <div class="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded text-xs animate-pulse">
             ● REC
           </div>
         </Show>
-        📹 Live Feed {isRecording() ? "Active" : "Inactive"}
+        <svg class="w-12 h-12 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM5 8a1 1 0 000 2h8a1 1 0 100-2H5z"></path>
+        </svg>
+        {t('liveFeed')} {isRecording() ? t('active') : t('inactive')}
       </div>
       <button
-        class="bg-gradient-to-r from-sky-600 to-blue-700 text-white px-5 py-2 rounded-lg 
-          font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+        class="bg-blue-600 text-white px-5 py-2 rounded-lg 
+          font-medium transition-all duration-300 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         onClick={openAllCameras}
       >
-        Open All Cameras
+        {t('openAllCameras')}
       </button>
     </Card>
   );
@@ -114,6 +158,14 @@ const CameraMonitoring = () => {
 
 // Smart Clustering Component
 const SmartClustering = () => {
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+  });
+
   const [smartClusteringStatus] = createSignal([
     { name: "Face Recognition", status: "online" },
     { name: "Auto Clustering", status: "online" },
@@ -123,17 +175,20 @@ const SmartClustering = () => {
 
   return (
     <Card>
-      <div class="text-lg font-semibold text-gray-800 mb-1">
+      <div class="text-lg font-bold theme-text-primary mb-1 flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zM12 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zM12 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-3z" clip-rule="evenodd"></path>
+        </svg>
         Smart Clustering Status
       </div>
-      <div class="text-sm text-gray-600 mb-5">
+      <div class="text-sm theme-text-secondary mb-5">
         Otomatisasi berdasarkan pengenalan wajah
       </div>
       <ul class="space-y-2">
         <For each={smartClusteringStatus()}>
           {(item) => (
-            <li class="flex justify-between items-center py-2 border-b border-gray-100">
-              <span class="text-gray-700">{item.name}</span>
+            <li class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-slate-600">
+              <span class="theme-text-tertiary">{item.name}</span>
               <StatusBadge status={item.status} />
             </li>
           )}
@@ -145,6 +200,15 @@ const SmartClustering = () => {
 
 // System Performance Component
 const SystemPerformance = () => {
+  const { t } = useLanguage();
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+  });
+
   const [systemMetrics, setSystemMetrics] = createSignal({
     cpu: 45,
     memory: 68,
@@ -165,19 +229,23 @@ const SystemPerformance = () => {
 
   return (
     <Card>
-      <div class="text-lg font-semibold text-gray-800 mb-1">
-        System Performance
+      <div class="text-lg font-bold theme-text-primary mb-1 flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        </svg>
+        {t('systemPerformance')}
       </div>
-      <div class="text-sm text-gray-600 mb-5">Real-time system monitoring</div>
-      <ProgressBar label="CPU Usage" value={systemMetrics().cpu} />
-      <ProgressBar label="Memory Usage" value={systemMetrics().memory} />
-      <ProgressBar label="Storage" value={systemMetrics().storage} />
+      <div class="text-sm theme-text-secondary mb-5">{t('realtimeSystemMonitoring')}</div>
+      <ProgressBar label={t('cpuUsage')} value={systemMetrics().cpu} />
+      <ProgressBar label={t('memoryUsage')} value={systemMetrics().memory} />
+      <ProgressBar label={t('storage')} value={systemMetrics().storage} />
     </Card>
   );
 };
 
 // OSP Management Component
 const OSPManagement = () => {
+  const { t } = useLanguage();
   const [activeTasks] = createSignal(24);
   const [ospTasks] = createSignal([
     { name: "Kantor ABJ Integration", status: "online" },
@@ -187,15 +255,21 @@ const OSPManagement = () => {
 
   return (
     <Card>
-      <div class="text-lg font-semibold text-gray-800 mb-1">OSP Management</div>
-      <div class="text-sm text-gray-600 mb-5">Operational Support Platform</div>
-      <div class="text-3xl font-bold text-gray-800 my-3">{activeTasks()}</div>
-      <div class="text-sm text-gray-600 mb-5">Active Tasks</div>
+      <div class="text-lg font-bold theme-text-primary mb-1 flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+          <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 001 1h6a1 1 0 001-1V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
+        </svg>
+        {t('ospManagement')}
+      </div>
+      <div class="text-sm theme-text-secondary mb-5">{t('operationalSupportPlatform')}</div>
+      <div class="text-3xl font-bold theme-text-primary my-3">{activeTasks()}</div>
+      <div class="text-sm theme-text-secondary mb-5">{t('activeTasks2')}</div>
       <ul class="space-y-2">
         <For each={ospTasks()}>
           {(item) => (
-            <li class="flex justify-between items-center py-2 border-b border-gray-100">
-              <span class="text-gray-700">{item.name}</span>
+            <li class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-slate-600">
+              <span class="theme-text-tertiary">{item.name}</span>
               <StatusBadge status={item.status} activeText="Connected" />
             </li>
           )}
@@ -207,6 +281,7 @@ const OSPManagement = () => {
 
 // Network Status Component
 const NetworkStatus = () => {
+  const { t } = useLanguage();
   const [networkStatus, setNetworkStatus] = createSignal({
     uptime: 98.5,
     latency: 145,
@@ -227,33 +302,38 @@ const NetworkStatus = () => {
 
   return (
     <Card>
-      <div class="text-lg font-semibold text-gray-800 mb-1">Network Status</div>
-      <div class="text-sm text-gray-600 mb-5">
-        Connectivity and bandwidth monitoring
+      <div class="text-lg font-bold theme-text-primary mb-1 flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clip-rule="evenodd"></path>
+        </svg>
+        {t('networkStatus')}
+      </div>
+      <div class="text-sm theme-text-secondary mb-5">
+        {t('connectivityBandwidthMonitoring')}
       </div>
       <div class="grid grid-cols-2 gap-5 my-5">
         <div>
-          <div class="text-2xl font-bold text-gray-800">
+          <div class="text-2xl font-bold theme-text-primary">
             {networkStatus().uptime}%
           </div>
-          <div class="text-sm text-gray-600">Uptime</div>
+          <div class="text-sm theme-text-tertiary">{t('uptime')}</div>
         </div>
         <div>
-          <div class="text-2xl font-bold text-gray-800">
+          <div class="text-2xl font-bold theme-text-primary">
             {networkStatus().latency}ms
           </div>
-          <div class="text-sm text-gray-600">Latency</div>
+          <div class="text-sm theme-text-tertiary">{t('latency')}</div>
         </div>
       </div>
-      <div class="text-sm text-gray-600 mb-2">Bandwidth Usage</div>
-      <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+      <div class="text-sm theme-text-tertiary mb-2">{t('bandwidthUsage')}</div>
+      <div class="w-full h-2 bg-gray-200 dark:bg-slate-600 rounded-full overflow-hidden mb-2">
         <div
-          class="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300"
+          class="h-full bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500 rounded-full transition-all duration-300"
           style={`width: ${networkStatus().bandwidth}%;`}
         ></div>
       </div>
-      <div class="text-sm text-gray-600">
-        {networkStatus().bandwidth}% of 1Gbps
+      <div class="text-sm theme-text-tertiary">
+        {networkStatus().bandwidth}% {t('of1Gbps')}
       </div>
     </Card>
   );
@@ -261,6 +341,7 @@ const NetworkStatus = () => {
 
 // Recent Activities Component
 const RecentActivities = () => {
+  const { t } = useLanguage();
   const [recentActivities] = createSignal([
     { activity: "Face detected - Security cam 1", time: "2 min ago" },
     { activity: "OSP task completed", time: "15 min ago" },
@@ -270,18 +351,21 @@ const RecentActivities = () => {
 
   return (
     <Card>
-      <div class="text-lg font-semibold text-gray-800 mb-1">
-        Recent Activities
+      <div class="text-lg font-bold theme-text-primary mb-1 flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+        </svg>
+        {t('recentActivitiesDash')}
       </div>
-      <div class="text-sm text-gray-600 mb-5">
-        Latest system events and updates
+      <div class="text-sm theme-text-secondary mb-5">
+        {t('latestSystemEventsUpdates')}
       </div>
       <ul class="space-y-2">
         <For each={recentActivities()}>
           {(activity) => (
-            <li class="flex justify-between items-center py-2 border-b border-gray-100">
-              <span class="text-gray-700">{activity.activity}</span>
-              <span class="text-xs text-gray-500">{activity.time}</span>
+            <li class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-slate-700">
+              <span class="theme-text-tertiary">{activity.activity}</span>
+              <span class="text-xs theme-text-tertiary">{activity.time}</span>
             </li>
           )}
         </For>
@@ -306,26 +390,27 @@ const DashboardContent = () => {
 
 // Main Dashboard Component
 const Dashboard = () => {
+  const { t } = useLanguage();
+  
   return (
     <Layout>
       <div class="space-y-8">
         {/* Header */}
-        <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 rounded-2xl p-8 text-white">
+        <div class="theme-card rounded-lg p-8 mb-6 shadow-sm border">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-3xl font-bold mb-2">Dashboard Overview</h1>
-              <p class="text-blue-100 text-lg">
-                Monitor sistem keamanan, performa jaringan, dan aktivitas
-                real-time
+              <h1 class="text-3xl font-bold theme-text-primary mb-2">{t("dashboard")}</h1>
+              <p class="theme-text-secondary text-lg">
+                {t("systemOverview")}
               </p>
             </div>
-            <div class="text-6xl opacity-20">
+            <div class="text-gray-300 dark:text-slate-500">
               <svg
                 width="64"
                 height="64"
                 viewBox="0 0 24 24"
                 fill="none"
-                class="text-white"
+                class="text-blue-600 dark:text-blue-400"
               >
                 <rect
                   x="3"

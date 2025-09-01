@@ -1,12 +1,22 @@
-import { Component, createSignal, For, Show } from "solid-js";
+import { Component, createSignal, For, Show, createEffect } from "solid-js";
 import Layout from "../layouts/Layout";
 import { useSettings } from "../contexts/SettingsContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 // Enhanced Card Component
 const Card: Component<{ children: any; class?: string }> = (props) => {
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+    console.log('Settings Card theme updated to:', settings().theme);
+  });
+  
   return (
     <div
-      class={`bg-neutral-100 rounded-2xl p-6 shadow-xl border border-neutral-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
+      class={`theme-card rounded-lg p-6 shadow-sm border transition-all duration-300 hover:shadow-md ${
         props.class || ""
       }`}
     >
@@ -21,17 +31,27 @@ const ToggleSwitch: Component<{
   onChange: (checked: boolean) => void;
   label: string;
 }> = (props) => {
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+  });
+
   return (
     <div class="flex items-center justify-between">
-      <span class="text-sm font-medium text-neutral-700">{props.label}</span>
+      <span class="text-sm font-medium theme-text-secondary">
+        {props.label}
+      </span>
       <button
         onClick={() => props.onChange(!props.checked)}
         class={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-          props.checked ? "bg-blue-600" : "bg-neutral-300"
+          props.checked ? "bg-blue-600" : currentTheme() === 'dark' ? "bg-slate-600" : "bg-gray-300"
         }`}
       >
         <span
-          class={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          class={`inline-block h-4 w-4 transform rounded-full theme-card transition-transform ${
             props.checked ? "translate-x-6" : "translate-x-1"
           }`}
         />
@@ -42,6 +62,7 @@ const ToggleSwitch: Component<{
 
 // Preferences Section Component
 const PreferencesSection: Component = () => {
+  const { t } = useLanguage();
   const {
     settings,
     setLanguage,
@@ -63,14 +84,23 @@ const PreferencesSection: Component = () => {
   };
 
   const resetSettings = () => {
-    if (
-      confirm(
-        "Are you sure you want to reset all settings to default? This action cannot be undone."
-      )
-    ) {
+    if (confirm(t("resetConfirmation"))) {
       localStorage.removeItem("akusara-settings");
       window.location.reload();
     }
+  };
+
+  const forceLight = () => {
+    console.log("Force light mode clicked");
+    document.documentElement.classList.remove("dark");
+    document.documentElement.style.colorScheme = "light";
+    localStorage.setItem("akusara-settings", JSON.stringify({
+      language: "id",
+      theme: "light",
+      notifications: { email: true, sms: false, push: true },
+      defaultPage: "dashboard"
+    }));
+    setTheme("light");
   };
 
   return (
@@ -101,15 +131,15 @@ const PreferencesSection: Component = () => {
           </svg>
         </div>
         <div>
-          <h2 class="text-xl font-bold text-neutral-900">Preferences</h2>
-          <p class="text-sm text-neutral-600">Customize your experience</p>
+          <h2 class="text-xl font-bold theme-text-primary">{t('preferences')}</h2>
+          <p class="text-sm theme-text-secondary">{t('customizeExperience')}</p>
         </div>
       </div>
 
       <div class="space-y-6">
         {/* Language Selection */}
         <div>
-          <label class="block text-sm font-medium text-neutral-700 mb-3">
+          <label class="block text-sm font-medium theme-text-primary mb-3">
             Language / Bahasa
           </label>
           <div class="grid grid-cols-2 gap-3">
@@ -118,7 +148,7 @@ const PreferencesSection: Component = () => {
               class={`p-3 rounded-xl border-2 transition-all duration-200 flex items-center gap-3 ${
                 settings().language === "en"
                   ? "border-blue-500 bg-blue-50 text-blue-700"
-                  : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
+                  : "theme-border theme-card theme-text-primary hover:theme-border"
               }`}
             >
               <div class="w-6 h-4 bg-red-500 relative overflow-hidden rounded">
@@ -138,7 +168,7 @@ const PreferencesSection: Component = () => {
               class={`p-3 rounded-xl border-2 transition-all duration-200 flex items-center gap-3 ${
                 settings().language === "id"
                   ? "border-blue-500 bg-blue-50 text-blue-700"
-                  : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
+                  : "theme-border theme-card theme-text-primary hover:theme-border"
               }`}
             >
               <div class="w-6 h-4 bg-red-500 relative overflow-hidden rounded">
@@ -151,7 +181,7 @@ const PreferencesSection: Component = () => {
 
         {/* Theme Selection */}
         <div>
-          <label class="block text-sm font-medium text-neutral-700 mb-3">
+          <label class="block text-sm font-medium theme-text-primary mb-3">
             Theme / Tema
           </label>
           <div class="grid grid-cols-2 gap-3">
@@ -160,11 +190,11 @@ const PreferencesSection: Component = () => {
               class={`p-4 rounded-xl border-2 transition-all duration-200 ${
                 settings().theme === "light"
                   ? "border-blue-500 bg-blue-50"
-                  : "border-neutral-200 bg-white hover:border-neutral-300"
+                  : "theme-border theme-card hover:theme-border"
               }`}
             >
               <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 bg-white border-2 border-neutral-200 rounded-lg flex items-center justify-center">
+                <div class="w-8 h-8 theme-card border-2 theme-border rounded-lg flex items-center justify-center">
                   <svg
                     width="16"
                     height="16"
@@ -239,9 +269,9 @@ const PreferencesSection: Component = () => {
                     />
                   </svg>
                 </div>
-                <span class="font-medium text-neutral-900">Light Mode</span>
+                <span class="font-medium theme-text-primary">Light Mode</span>
               </div>
-              <p class="text-xs text-neutral-600 text-left">
+              <p class="text-xs theme-text-secondary text-left">
                 Bright and clean interface
               </p>
             </button>
@@ -250,11 +280,11 @@ const PreferencesSection: Component = () => {
               class={`p-4 rounded-xl border-2 transition-all duration-200 ${
                 settings().theme === "dark"
                   ? "border-blue-500 bg-blue-50"
-                  : "border-neutral-200 bg-white hover:border-neutral-300"
+                  : "theme-border theme-card hover:theme-border"
               }`}
             >
               <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 bg-neutral-800 border-2 border-neutral-600 rounded-lg flex items-center justify-center">
+                <div class="w-8 h-8 bg-gray-800 border-2 border-gray-600 rounded-lg flex items-center justify-center">
                   <svg
                     width="16"
                     height="16"
@@ -268,19 +298,29 @@ const PreferencesSection: Component = () => {
                     />
                   </svg>
                 </div>
-                <span class="font-medium text-neutral-900">Dark Mode</span>
+                <span class="font-medium theme-text-primary">Dark Mode</span>
               </div>
-              <p class="text-xs text-neutral-600 text-left">Easy on the eyes</p>
+              <p class="text-xs theme-text-secondary text-left">Easy on the eyes</p>
+            </button>
+          </div>
+          
+          {/* Debug Button - Force Light Mode */}
+          <div class="mt-4">
+            <button
+              onClick={forceLight}
+              class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+            >
+              🔧 Force Light Mode (Debug)
             </button>
           </div>
         </div>
 
         {/* Notification Settings */}
         <div>
-          <label class="block text-sm font-medium text-neutral-700 mb-3">
+          <label class="block text-sm font-medium theme-text-primary mb-3">
             Notifications / Notifikasi
           </label>
-          <div class="space-y-3 bg-white p-4 rounded-xl border border-neutral-200">
+          <div class="space-y-3 theme-card p-4 rounded-xl border theme-border">
             <ToggleSwitch
               checked={settings().notifications.email}
               onChange={(checked) => updateNotifications({ email: checked })}
@@ -301,13 +341,13 @@ const PreferencesSection: Component = () => {
 
         {/* Default Page */}
         <div>
-          <label class="block text-sm font-medium text-neutral-700 mb-3">
+          <label class="block text-sm font-medium theme-text-primary mb-3">
             Default Page After Login
           </label>
           <select
             value={settings().defaultPage}
             onChange={(e) => setDefaultPage(e.target.value as any)}
-            class="w-full p-3 border border-neutral-200 rounded-xl bg-white text-neutral-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full p-3 border theme-border rounded-xl theme-card theme-text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="dashboard">Dashboard</option>
             <option value="security">Security</option>
@@ -317,7 +357,7 @@ const PreferencesSection: Component = () => {
         </div>
 
         {/* Settings Actions */}
-        <div class="flex gap-3 pt-4 border-t border-neutral-200">
+        <div class="flex gap-3 pt-4 border-t theme-border">
           <button
             onClick={exportSettings}
             class="flex-1 bg-gradient-to-r from-green-600 to-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg text-sm flex items-center justify-center gap-2"
@@ -348,7 +388,7 @@ const PreferencesSection: Component = () => {
                 stroke-width="2"
               />
             </svg>
-            Export Settings
+            {t('exportSettings')}
           </button>
           <button
             onClick={resetSettings}
@@ -387,6 +427,7 @@ const PreferencesSection: Component = () => {
 
 // Security Section Component
 const SecuritySection: Component = () => {
+  const { t } = useLanguage();
   const [twoFactorEnabled, setTwoFactorEnabled] = createSignal(false);
   const [showChangePassword, setShowChangePassword] = createSignal(false);
   const [passwordForm, setPasswordForm] = createSignal({
@@ -497,20 +538,20 @@ const SecuritySection: Component = () => {
           </svg>
         </div>
         <div>
-          <h2 class="text-xl font-bold text-neutral-900">Security</h2>
-          <p class="text-sm text-neutral-600">Protect your account</p>
+          <h2 class="text-xl font-bold theme-text-primary">Security</h2>
+          <p class="text-sm theme-text-secondary">Protect your account</p>
         </div>
       </div>
 
       <div class="space-y-6">
         {/* Two-Factor Authentication */}
-        <div class="bg-white p-4 rounded-xl border border-neutral-200">
+        <div class="theme-card p-4 rounded-xl border theme-border">
           <ToggleSwitch
             checked={twoFactorEnabled()}
             onChange={toggle2FA}
             label="Two-Factor Authentication (2FA)"
           />
-          <p class="text-xs text-neutral-600 mt-2">
+          <p class="text-xs theme-text-secondary mt-2">
             Add an extra layer of security to your account
           </p>
           {twoFactorEnabled() && (
@@ -560,10 +601,10 @@ const SecuritySection: Component = () => {
           {showChangePassword() && (
             <form
               onSubmit={handleChangePassword}
-              class="mt-4 space-y-4 bg-white p-4 rounded-xl border border-neutral-200"
+              class="mt-4 space-y-4 theme-card p-4 rounded-xl border theme-border"
             >
               <div>
-                <label class="block text-sm font-medium text-neutral-700 mb-2">
+                <label class="block text-sm font-medium theme-text-primary mb-2">
                   Current Password
                 </label>
                 <input
@@ -575,12 +616,12 @@ const SecuritySection: Component = () => {
                       currentPassword: e.target.value,
                     })
                   }
-                  class="w-full p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="w-full p-3 border theme-border rounded-lg theme-card theme-text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-neutral-700 mb-2">
+                <label class="block text-sm font-medium theme-text-primary mb-2">
                   New Password
                 </label>
                 <input
@@ -592,13 +633,13 @@ const SecuritySection: Component = () => {
                       newPassword: e.target.value,
                     })
                   }
-                  class="w-full p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="w-full p-3 border theme-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                   minlength="8"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-neutral-700 mb-2">
+                <label class="block text-sm font-medium theme-text-primary mb-2">
                   Confirm New Password
                 </label>
                 <input
@@ -610,7 +651,7 @@ const SecuritySection: Component = () => {
                       confirmPassword: e.target.value,
                     })
                   }
-                  class="w-full p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="w-full p-3 border theme-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                   minlength="8"
                 />
@@ -628,20 +669,20 @@ const SecuritySection: Component = () => {
         {/* Active Sessions */}
         <div>
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-neutral-900">
+            <h3 class="text-lg font-semibold theme-text-primary">
               Active Sessions
             </h3>
             <button
               onClick={logoutAllOtherSessions}
               class="text-sm text-red-600 hover:text-red-700 font-medium"
             >
-              Logout All Others
+              {t('logoutAllOthers')}
             </button>
           </div>
           <div class="space-y-3">
             <For each={activeSessions()}>
               {(session) => (
-                <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-neutral-200">
+                <div class="flex items-center justify-between p-4 theme-card rounded-xl border theme-border">
                   <div class="flex items-center gap-3">
                     <div
                       class={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -656,7 +697,7 @@ const SecuritySection: Component = () => {
                         class={
                           session.current
                             ? "text-green-600"
-                            : "text-neutral-600"
+                            : "theme-text-secondary"
                         }
                       >
                         <rect
@@ -676,7 +717,7 @@ const SecuritySection: Component = () => {
                       </svg>
                     </div>
                     <div>
-                      <div class="font-medium text-neutral-900 flex items-center gap-2">
+                      <div class="font-medium theme-text-primary flex items-center gap-2">
                         {session.device}
                         {session.current && (
                           <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
@@ -684,7 +725,7 @@ const SecuritySection: Component = () => {
                           </span>
                         )}
                       </div>
-                      <div class="text-sm text-neutral-600">
+                      <div class="text-sm theme-text-secondary">
                         {session.location} • Last active: {session.lastActive}
                       </div>
                     </div>
@@ -709,6 +750,7 @@ const SecuritySection: Component = () => {
 
 // System Settings Section Component (Admin Only)
 const SystemSettingsSection: Component<{ isAdmin: boolean }> = (props) => {
+  const { t } = useLanguage();
   const [users] = createSignal([
     {
       id: 1,
@@ -792,35 +834,35 @@ const SystemSettingsSection: Component<{ isAdmin: boolean }> = (props) => {
             </svg>
           </div>
           <div>
-            <h2 class="text-xl font-bold text-neutral-900">System Settings</h2>
-            <p class="text-sm text-neutral-600">Admin-only system management</p>
+            <h2 class="text-xl font-bold theme-text-primary">{t("systemSettings")}</h2>
+            <p class="text-sm theme-text-secondary">{t("adminOnlyDescription")}</p>
           </div>
         </div>
 
         <div class="space-y-6">
           {/* User Management */}
           <div>
-            <h3 class="text-lg font-semibold text-neutral-900 mb-4">
+            <h3 class="text-lg font-semibold theme-text-primary mb-4">
               User Management
             </h3>
-            <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+            <div class="theme-card rounded-xl border theme-border overflow-hidden">
               <div class="overflow-x-auto">
                 <table class="w-full">
-                  <thead class="bg-neutral-50">
+                  <thead class="theme-bg-subtle">
                     <tr>
-                      <th class="text-left p-4 font-medium text-neutral-700">
+                      <th class="text-left p-4 font-medium theme-text-secondary">
                         Name
                       </th>
-                      <th class="text-left p-4 font-medium text-neutral-700">
+                      <th class="text-left p-4 font-medium theme-text-secondary">
                         Email
                       </th>
-                      <th class="text-left p-4 font-medium text-neutral-700">
+                      <th class="text-left p-4 font-medium theme-text-secondary">
                         Role
                       </th>
-                      <th class="text-left p-4 font-medium text-neutral-700">
+                      <th class="text-left p-4 font-medium theme-text-secondary">
                         Status
                       </th>
-                      <th class="text-left p-4 font-medium text-neutral-700">
+                      <th class="text-left p-4 font-medium theme-text-secondary">
                         Actions
                       </th>
                     </tr>
@@ -828,11 +870,11 @@ const SystemSettingsSection: Component<{ isAdmin: boolean }> = (props) => {
                   <tbody>
                     <For each={users()}>
                       {(user) => (
-                        <tr class="border-t border-neutral-100 hover:bg-neutral-50">
-                          <td class="p-4 font-medium text-neutral-900">
+                        <tr class="border-t theme-border hover:theme-bg-subtle">
+                          <td class="p-4 font-medium theme-text-primary">
                             {user.name}
                           </td>
-                          <td class="p-4 text-neutral-600">{user.email}</td>
+                          <td class="p-4 theme-text-secondary">{user.email}</td>
                           <td class="p-4">
                             <span
                               class={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -840,7 +882,7 @@ const SystemSettingsSection: Component<{ isAdmin: boolean }> = (props) => {
                                   ? "bg-purple-100 text-purple-700"
                                   : user.role === "Staff"
                                   ? "bg-blue-100 text-blue-700"
-                                  : "bg-neutral-100 text-neutral-700"
+                                  : "theme-bg-subtle theme-text-secondary"
                               }`}
                             >
                               {user.role}
@@ -878,11 +920,11 @@ const SystemSettingsSection: Component<{ isAdmin: boolean }> = (props) => {
 
           {/* Database Backup & System Maintenance */}
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-white p-4 rounded-xl border border-neutral-200">
-              <h4 class="font-semibold text-neutral-900 mb-2">
+            <div class="theme-card p-4 rounded-xl border theme-border">
+              <h4 class="font-semibold theme-text-primary mb-2">
                 Database Backup
               </h4>
-              <p class="text-sm text-neutral-600 mb-3">
+              <p class="text-sm theme-text-secondary mb-3">
                 Last backup: {lastBackup()}
               </p>
               <button
@@ -931,11 +973,11 @@ const SystemSettingsSection: Component<{ isAdmin: boolean }> = (props) => {
                 Manual Backup
               </button>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-neutral-200">
-              <h4 class="font-semibold text-neutral-900 mb-2">
+            <div class="theme-card p-4 rounded-xl border theme-border">
+              <h4 class="font-semibold theme-text-primary mb-2">
                 System Maintenance
               </h4>
-              <p class="text-sm text-neutral-600 mb-3">
+              <p class="text-sm theme-text-secondary mb-3">
                 Optimize database and clear cache
               </p>
               <button class="w-full bg-gradient-to-r from-orange-600 to-red-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg text-sm flex items-center justify-center gap-2">
@@ -966,13 +1008,13 @@ const SystemSettingsSection: Component<{ isAdmin: boolean }> = (props) => {
 
           {/* Recent System Logs */}
           <div>
-            <h3 class="text-lg font-semibold text-neutral-900 mb-4">
+            <h3 class="text-lg font-semibold theme-text-primary mb-4">
               Recent System Logs
             </h3>
             <div class="space-y-2 max-h-64 overflow-y-auto">
               <For each={recentLogs()}>
                 {(log) => (
-                  <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-neutral-100 text-sm">
+                  <div class="flex items-center justify-between p-3 theme-card rounded-lg border theme-border text-sm">
                     <div class="flex items-center gap-3">
                       <div
                         class={`w-2 h-2 rounded-full ${
@@ -983,12 +1025,12 @@ const SystemSettingsSection: Component<{ isAdmin: boolean }> = (props) => {
                             : "bg-red-500"
                         }`}
                       ></div>
-                      <span class="font-mono text-neutral-600">
+                      <span class="font-mono theme-text-secondary">
                         {log.timestamp}
                       </span>
-                      <span class="text-neutral-900">{log.action}</span>
+                      <span class="theme-text-primary">{log.action}</span>
                     </div>
-                    <span class="text-neutral-600">{log.user}</span>
+                    <span class="theme-text-secondary">{log.user}</span>
                   </div>
                 )}
               </For>
@@ -1003,24 +1045,24 @@ const SystemSettingsSection: Component<{ isAdmin: boolean }> = (props) => {
 // Main Settings Component
 const Settings: Component = () => {
   const [isAdmin] = createSignal(true);
+  const { t } = useLanguage();
 
   return (
     <Layout activeSection="settings">
       <div class="space-y-8">
         {/* Header */}
-        <div class="bg-gradient-to-r from-slate-600 via-gray-600 to-zinc-700 rounded-2xl p-8 text-white">
+        <Card class="mb-8">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-3xl font-bold mb-2">Settings & Preferences</h1>
-              <p class="text-slate-100 text-lg">
-                Kelola pengaturan akun, preferensi sistem, dan konfigurasi
-                aplikasi
+              <h1 class="text-3xl font-bold theme-text-primary mb-2">{t("settingsPreferences")}</h1>
+              <p class="theme-text-secondary text-lg">
+                {t("settingsDescription")}
               </p>
             </div>
-            <div class="text-6xl opacity-20">
+            <div class="bg-blue-600 p-4 rounded-xl shadow-lg">
               <svg
-                width="64"
-                height="64"
+                width="32"
+                height="32"
                 viewBox="0 0 24 24"
                 fill="none"
                 class="text-white"
@@ -1036,7 +1078,7 @@ const Settings: Component = () => {
               </svg>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Settings Sections */}
         <PreferencesSection />

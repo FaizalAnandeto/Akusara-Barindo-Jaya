@@ -1,11 +1,22 @@
-import { Component, createSignal, For, Show } from "solid-js";
+import { Component, createSignal, For, Show, createEffect } from "solid-js";
+import { useSettings } from "../contexts/SettingsContext";
+import { useLanguage } from "../contexts/LanguageContext";
 import Layout from "../layouts/Layout";
 
 // Enhanced Card Component
 const Card: Component<{ children: any; class?: string }> = (props) => {
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+    console.log('Finance Card theme updated to:', settings().theme);
+  });
+  
   return (
     <div
-      class={`bg-neutral-100 rounded-2xl p-6 shadow-xl border border-neutral-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
+      class={`theme-card rounded-lg p-6 shadow-sm border transition-all duration-300 hover:shadow-md ${
         props.class || ""
       }`}
     >
@@ -16,16 +27,39 @@ const Card: Component<{ children: any; class?: string }> = (props) => {
 
 // Status Badge Component
 const StatusBadge: Component<{ status: string }> = (props) => {
+  const { settings } = useSettings();
+  const { t } = useLanguage();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+  });
+
   const getStatusColor = () => {
+    const isDark = currentTheme() === 'dark';
     switch (props.status.toLowerCase()) {
       case "paid":
-        return "bg-green-100 text-green-800";
+        return isDark ? "bg-green-900/50 text-green-400" : "bg-green-100 text-green-800";
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return isDark ? "bg-yellow-900/50 text-yellow-400" : "bg-yellow-100 text-yellow-800";
       case "unpaid":
-        return "bg-red-100 text-red-800";
+        return isDark ? "bg-red-900/50 text-red-400" : "bg-red-100 text-red-800";
       default:
-        return "bg-neutral-100 text-neutral-600";
+        return "theme-bg-subtle theme-text-secondary";
+    }
+  };
+
+  const getStatusText = () => {
+    switch (props.status.toLowerCase()) {
+      case "paid":
+        return t("paid");
+      case "pending":
+        return t("pending");
+      case "unpaid":
+        return t("unpaid");
+      default:
+        return props.status;
     }
   };
 
@@ -33,13 +67,14 @@ const StatusBadge: Component<{ status: string }> = (props) => {
     <span
       class={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}
     >
-      {props.status}
+      {getStatusText()}
     </span>
   );
 };
 
 // Finance Overview Component
 const FinanceOverview: Component = () => {
+  const { t } = useLanguage();
   const [financeData] = createSignal({
     totalIuran: 125000000,
     paidPercentage: 78,
@@ -54,7 +89,7 @@ const FinanceOverview: Component = () => {
   return (
     <Card>
       <div class="mb-6">
-        <div class="text-xl font-bold text-neutral-900 mb-2 flex items-center gap-3">
+        <div class="text-xl font-bold theme-text-primary mb-2 flex items-center gap-3">
           <div class="bg-gradient-to-r from-green-600 to-emerald-700 p-3 rounded-xl shadow-lg">
             <svg
               width="24"
@@ -73,10 +108,10 @@ const FinanceOverview: Component = () => {
               <circle cx="12" cy="12" r="3" fill="currentColor" />
             </svg>
           </div>
-          Finance Overview - {financeData().thisMonth}
+          {t("financeManagement")} - {financeData().thisMonth}
         </div>
-        <div class="text-sm text-neutral-600">
-          Ringkasan keuangan dan status pembayaran iuran warga
+        <div class="text-sm theme-text-secondary">
+          {t("financeDescription")}
         </div>
       </div>
 
@@ -122,7 +157,7 @@ const FinanceOverview: Component = () => {
           <div class="text-2xl font-bold text-green-700 mb-1">
             Rp {financeData().totalIuran.toLocaleString("id-ID")}
           </div>
-          <div class="text-sm text-green-600">Total Iuran Bulan Ini</div>
+          <div class="text-sm text-green-600">{t("totalIuranThisMonth")}</div>
         </div>
 
         <div class="bg-gradient-to-br from-blue-50 to-cyan-100 rounded-xl p-4 border border-blue-200">
@@ -166,7 +201,7 @@ const FinanceOverview: Component = () => {
             {financeData().paidPercentage}%
           </div>
           <div class="text-sm text-blue-600">
-            Sudah Bayar ({financeData().paidResidents} warga)
+            {t("sudahBayar")} ({financeData().paidResidents} {t("warga")})
           </div>
         </div>
 
@@ -233,7 +268,7 @@ const FinanceOverview: Component = () => {
             Rp {financeData().outstandingBalance.toLocaleString("id-ID")}
           </div>
           <div class="text-sm text-red-600">
-            Outstanding Balance ({financeData().unpaidResidents} warga)
+            {t("outstandingBalance")} ({financeData().unpaidResidents} {t("warga")})
           </div>
         </div>
 
@@ -291,17 +326,17 @@ const FinanceOverview: Component = () => {
           <div class="text-2xl font-bold text-purple-700 mb-1">
             {financeData().totalResidents}
           </div>
-          <div class="text-sm text-purple-600">Total Warga</div>
+          <div class="text-sm text-purple-600">{t("totalResidents")}</div>
         </div>
       </div>
 
       {/* Progress Bar */}
       <div class="mb-6">
-        <div class="flex justify-between text-sm font-medium text-neutral-700 mb-2">
+        <div class="flex justify-between text-sm font-medium theme-text-primary mb-2">
           <span>Progress Pembayaran</span>
-          <span>{financeData().paidPercentage}% Complete</span>
+          <span>{financeData().paidPercentage}% {t('complete')}</span>
         </div>
-        <div class="w-full bg-neutral-200 rounded-full h-3">
+        <div class="w-full theme-bg-subtle rounded-full h-3">
           <div
             class="bg-gradient-to-r from-green-500 to-emerald-600 h-3 rounded-full transition-all duration-700 ease-out"
             style={`width: ${financeData().paidPercentage}%`}
@@ -412,6 +447,7 @@ const FinanceOverview: Component = () => {
 
 // Payment Status Component
 const PaymentStatus: Component = () => {
+  const { t } = useLanguage();
   const [residents] = createSignal([
     {
       id: 1,
@@ -451,7 +487,7 @@ const PaymentStatus: Component = () => {
       status: "paid",
       dueDate: "31 Agustus 2025",
       paymentDate: "20 Agustus 2025",
-      method: "E-Wallet",
+      method: t("eWallet"),
     },
     {
       id: 5,
@@ -467,6 +503,14 @@ const PaymentStatus: Component = () => {
 
   const [filterStatus, setFilterStatus] = createSignal("all");
 
+  // Update filter status when language changes
+  createEffect(() => {
+    if (filterStatus() === "all") {
+      // Re-trigger reactivity when language changes
+      t("all");
+    }
+  });
+
   const filteredResidents = () => {
     if (filterStatus() === "all") return residents();
     return residents().filter((resident) => resident.status === filterStatus());
@@ -475,7 +519,7 @@ const PaymentStatus: Component = () => {
   return (
     <Card>
       <div class="mb-6">
-        <div class="text-xl font-bold text-neutral-900 mb-2 flex items-center gap-3">
+        <div class="text-xl font-bold theme-text-primary mb-2 flex items-center gap-3">
           <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-3 rounded-xl shadow-lg">
             <svg
               width="24"
@@ -493,10 +537,10 @@ const PaymentStatus: Component = () => {
               />
             </svg>
           </div>
-          Payment Status & Warga Management
+          {t("paymentStatusManagement")}
         </div>
-        <div class="text-sm text-neutral-600">
-          Daftar warga dan status pembayaran iuran bulanan
+        <div class="text-sm theme-text-secondary">
+          {t("paymentStatusDescription")}
         </div>
       </div>
 
@@ -507,40 +551,40 @@ const PaymentStatus: Component = () => {
           class={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
             filterStatus() === "all"
               ? "bg-blue-600 text-white shadow-lg"
-              : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
+              : "theme-bg-subtle theme-text-primary"
           }`}
         >
-          Semua ({residents().length})
+          {t("all")} ({residents().length})
         </button>
         <button
           onClick={() => setFilterStatus("paid")}
           class={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
             filterStatus() === "paid"
               ? "bg-green-600 text-white shadow-lg"
-              : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
+              : "theme-bg-subtle theme-text-primary"
           }`}
         >
-          Paid ({residents().filter((r) => r.status === "paid").length})
+          {t("paid")} ({residents().filter((r) => r.status === "paid").length})
         </button>
         <button
           onClick={() => setFilterStatus("pending")}
           class={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
             filterStatus() === "pending"
               ? "bg-yellow-600 text-white shadow-lg"
-              : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
+              : "theme-bg-subtle theme-text-primary"
           }`}
         >
-          Pending ({residents().filter((r) => r.status === "pending").length})
+          {t("pending")} ({residents().filter((r) => r.status === "pending").length})
         </button>
         <button
           onClick={() => setFilterStatus("unpaid")}
           class={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
             filterStatus() === "unpaid"
               ? "bg-red-600 text-white shadow-lg"
-              : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
+              : "theme-bg-subtle theme-text-primary"
           }`}
         >
-          Unpaid ({residents().filter((r) => r.status === "unpaid").length})
+          {t("unpaid")} ({residents().filter((r) => r.status === "unpaid").length})
         </button>
       </div>
 
@@ -548,23 +592,23 @@ const PaymentStatus: Component = () => {
       <div class="overflow-x-auto">
         <table class="w-full border-collapse">
           <thead>
-            <tr class="bg-neutral-50 border-b border-neutral-200">
-              <th class="text-left p-4 font-semibold text-neutral-700">
-                Warga
+            <tr class="theme-bg-subtle border-b theme-border">
+              <th class="text-left p-4 font-semibold theme-text-primary">
+                {t("residents")}
               </th>
-              <th class="text-left p-4 font-semibold text-neutral-700">
+              <th class="text-left p-4 font-semibold theme-text-primary">
                 Blok/Unit
               </th>
-              <th class="text-left p-4 font-semibold text-neutral-700">
+              <th class="text-left p-4 font-semibold theme-text-primary">
                 Nominal
               </th>
-              <th class="text-left p-4 font-semibold text-neutral-700">
+              <th class="text-left p-4 font-semibold theme-text-primary">
                 Status
               </th>
-              <th class="text-left p-4 font-semibold text-neutral-700">
+              <th class="text-left p-4 font-semibold theme-text-primary">
                 Metode
               </th>
-              <th class="text-left p-4 font-semibold text-neutral-700">
+              <th class="text-left p-4 font-semibold theme-text-primary">
                 Actions
               </th>
             </tr>
@@ -572,24 +616,24 @@ const PaymentStatus: Component = () => {
           <tbody>
             <For each={filteredResidents()}>
               {(resident) => (
-                <tr class="border-b border-neutral-100 hover:bg-neutral-50 transition-colors">
+                <tr class="border-b theme-border transition-colors">
                   <td class="p-4">
                     <div class="flex items-center gap-3">
                       <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
                         {resident.name.charAt(0)}
                       </div>
                       <div>
-                        <div class="font-medium text-neutral-900">
+                        <div class="font-medium theme-text-primary">
                           {resident.name}
                         </div>
-                        <div class="text-sm text-neutral-600">
+                        <div class="text-sm theme-text-secondary">
                           Due: {resident.dueDate}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td class="p-4">
-                    <span class="font-medium text-neutral-800">
+                    <span class="font-medium theme-text-primary">
                       {resident.block}
                     </span>
                   </td>
@@ -602,7 +646,7 @@ const PaymentStatus: Component = () => {
                     <StatusBadge status={resident.status} />
                   </td>
                   <td class="p-4">
-                    <span class="text-sm text-neutral-600">
+                    <span class="text-sm theme-text-secondary">
                       {resident.method}
                     </span>
                   </td>
@@ -687,6 +731,7 @@ const PaymentStatus: Component = () => {
 
 // Transaction History Component
 const TransactionHistory: Component = () => {
+  const { t } = useLanguage();
   const [transactions] = createSignal([
     {
       id: "TXN-001",
@@ -705,7 +750,7 @@ const TransactionHistory: Component = () => {
       block: "D-07",
       amount: 800000,
       type: "Monthly Fee",
-      method: "E-Wallet",
+      method: t("eWallet"),
       date: "20 Agustus 2025",
       time: "09:15",
       status: "completed",
@@ -748,7 +793,7 @@ const TransactionHistory: Component = () => {
   return (
     <Card>
       <div class="mb-6">
-        <div class="text-xl font-bold text-neutral-900 mb-2 flex items-center gap-3">
+        <div class="text-xl font-bold theme-text-primary mb-2 flex items-center gap-3">
           <div class="bg-gradient-to-r from-purple-600 to-pink-700 p-3 rounded-xl shadow-lg">
             <svg
               width="24"
@@ -768,21 +813,21 @@ const TransactionHistory: Component = () => {
           </div>
           Transaction History
         </div>
-        <div class="text-sm text-neutral-600">
+        <div class="text-sm theme-text-secondary">
           Riwayat transaksi dan pembayaran terbaru
         </div>
       </div>
 
       {/* Filter by Month/Year */}
       <div class="flex flex-wrap gap-3 mb-6">
-        <select class="bg-white border border-neutral-300 rounded-lg px-4 py-2 text-neutral-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <select class="theme-card border theme-border rounded-lg px-4 py-2 theme-text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           <option>Agustus 2025</option>
           <option>Juli 2025</option>
           <option>Juni 2025</option>
           <option>Mei 2025</option>
         </select>
 
-        <select class="bg-white border border-neutral-300 rounded-lg px-4 py-2 text-neutral-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <select class="theme-card border theme-border rounded-lg px-4 py-2 theme-text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           <option>Semua Jenis</option>
           <option>Monthly Fee</option>
           <option>Security Deposit</option>
@@ -794,7 +839,7 @@ const TransactionHistory: Component = () => {
       <div class="space-y-4">
         <For each={transactions()}>
           {(transaction) => (
-            <div class="bg-white rounded-xl p-4 border border-neutral-200 hover:shadow-md transition-all duration-200">
+            <div class="theme-card rounded-xl p-4 border theme-border hover:shadow-md transition-all duration-200">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-3">
                   <div
@@ -805,10 +850,10 @@ const TransactionHistory: Component = () => {
                     }`}
                   ></div>
                   <div>
-                    <div class="font-semibold text-neutral-900">
+                    <div class="font-semibold theme-text-primary">
                       {transaction.resident} • {transaction.block}
                     </div>
-                    <div class="text-sm text-neutral-600">
+                    <div class="text-sm theme-text-secondary">
                       {transaction.id} • {transaction.type}
                     </div>
                   </div>
@@ -818,7 +863,7 @@ const TransactionHistory: Component = () => {
                   <div class="font-bold text-green-700">
                     Rp {transaction.amount.toLocaleString("id-ID")}
                   </div>
-                  <div class="text-sm text-neutral-600">
+                  <div class="text-sm theme-text-secondary">
                     {transaction.date} • {transaction.time}
                   </div>
                 </div>
@@ -826,7 +871,7 @@ const TransactionHistory: Component = () => {
 
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span class="text-sm text-neutral-600">
+                  <span class="text-sm theme-text-secondary">
                     Payment Method: {transaction.method}
                   </span>
                 </div>
@@ -843,6 +888,7 @@ const TransactionHistory: Component = () => {
 
 // Add Transaction Component
 const AddTransaction: Component = () => {
+  const { t } = useLanguage();
   const [formData, setFormData] = createSignal({
     resident: "",
     block: "",
@@ -855,7 +901,7 @@ const AddTransaction: Component = () => {
   return (
     <Card>
       <div class="mb-6">
-        <div class="text-xl font-bold text-neutral-900 mb-2 flex items-center gap-3">
+        <div class="text-xl font-bold theme-text-primary mb-2 flex items-center gap-3">
           <div class="bg-gradient-to-r from-indigo-600 to-blue-700 p-3 rounded-xl shadow-lg">
             <svg
               width="24"
@@ -891,7 +937,7 @@ const AddTransaction: Component = () => {
           </div>
           Add Manual Transaction
         </div>
-        <div class="text-sm text-neutral-600">
+        <div class="text-sm theme-text-secondary">
           Input pembayaran manual (transfer tunai, offline payment)
         </div>
       </div>
@@ -899,18 +945,18 @@ const AddTransaction: Component = () => {
       <form class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">
-              Nama Warga
+            <label class="block text-sm font-medium theme-text-primary mb-2">
+              {t("namaWarga")}
             </label>
             <input
               type="text"
-              placeholder="Masukkan nama warga"
+              placeholder={t("enterResidentName")}
               class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">
+            <label class="block text-sm font-medium theme-text-primary mb-2">
               Blok/Unit
             </label>
             <input
@@ -923,7 +969,7 @@ const AddTransaction: Component = () => {
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">
+            <label class="block text-sm font-medium theme-text-primary mb-2">
               Nominal (Rp)
             </label>
             <input
@@ -934,7 +980,7 @@ const AddTransaction: Component = () => {
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">
+            <label class="block text-sm font-medium theme-text-primary mb-2">
               Jenis Pembayaran
             </label>
             <select class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -947,19 +993,19 @@ const AddTransaction: Component = () => {
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-neutral-700 mb-2">
+          <label class="block text-sm font-medium theme-text-primary mb-2">
             Metode Pembayaran
           </label>
           <select class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <option value="cash">Cash (Tunai)</option>
             <option value="transfer">Transfer Bank</option>
-            <option value="ewallet">E-Wallet</option>
+            <option value="ewallet">{t("eWallet")}</option>
             <option value="qris">QRIS</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-neutral-700 mb-2">
+          <label class="block text-sm font-medium theme-text-primary mb-2">
             Catatan (Opsional)
           </label>
           <textarea
@@ -994,7 +1040,7 @@ const AddTransaction: Component = () => {
 
           <button
             type="button"
-            class="bg-neutral-200 text-neutral-700 px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:bg-neutral-300"
+            class="theme-bg-subtle theme-text-primary px-6 py-3 rounded-xl font-medium transition-all duration-300"
           >
             Reset Form
           </button>
@@ -1006,17 +1052,18 @@ const AddTransaction: Component = () => {
 
 // Payment Integration Component
 const PaymentIntegration: Component = () => {
+  const { t } = useLanguage();
   const [integrationStatus] = createSignal({
     qris: { connected: true, lastSync: "2 menit yang lalu" },
     bankTransfer: { connected: true, lastSync: "5 menit yang lalu" },
-    ewallet: { connected: false, lastSync: "Tidak terhubung" },
+    ewallet: { connected: false, lastSync: t("notConnected") },
     onlineGateway: { connected: true, lastSync: "1 menit yang lalu" },
   });
 
   return (
     <Card>
       <div class="mb-6">
-        <div class="text-xl font-bold text-neutral-900 mb-2 flex items-center gap-3">
+        <div class="text-xl font-bold theme-text-primary mb-2 flex items-center gap-3">
           <div class="bg-gradient-to-r from-cyan-600 to-teal-700 p-3 rounded-xl shadow-lg">
             <svg
               width="24"
@@ -1047,13 +1094,13 @@ const PaymentIntegration: Component = () => {
           </div>
           Payment Integration
         </div>
-        <div class="text-sm text-neutral-600">
+        <div class="text-sm theme-text-secondary">
           Status integrasi sistem pembayaran online
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white rounded-xl p-4 border border-neutral-200">
+        <div class="theme-card rounded-xl p-4 border theme-border">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -1077,8 +1124,8 @@ const PaymentIntegration: Component = () => {
                 </svg>
               </div>
               <div>
-                <div class="font-semibold text-neutral-900">QRIS Payment</div>
-                <div class="text-sm text-neutral-600">
+                <div class="font-semibold theme-text-primary">QRIS Payment</div>
+                <div class="text-sm theme-text-secondary">
                   Quick Response Indonesia Standard
                 </div>
               </div>
@@ -1091,12 +1138,12 @@ const PaymentIntegration: Component = () => {
               }`}
             ></div>
           </div>
-          <div class="text-xs text-neutral-600">
+          <div class="text-xs text-neutral-300">
             Last Sync: {integrationStatus().qris.lastSync}
           </div>
         </div>
 
-        <div class="bg-white rounded-xl p-4 border border-neutral-200">
+        <div class="theme-card rounded-xl p-4 border theme-border">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -1135,8 +1182,8 @@ const PaymentIntegration: Component = () => {
                 </svg>
               </div>
               <div>
-                <div class="font-semibold text-neutral-900">Bank Transfer</div>
-                <div class="text-sm text-neutral-600">
+                <div class="font-semibold theme-text-primary">Bank Transfer</div>
+                <div class="text-sm theme-text-secondary">
                   Automatic bank integration
                 </div>
               </div>
@@ -1149,12 +1196,12 @@ const PaymentIntegration: Component = () => {
               }`}
             ></div>
           </div>
-          <div class="text-xs text-neutral-600">
+          <div class="text-xs text-neutral-300">
             Last Sync: {integrationStatus().bankTransfer.lastSync}
           </div>
         </div>
 
-        <div class="bg-white rounded-xl p-4 border border-neutral-200">
+        <div class="theme-card rounded-xl p-4 border theme-border">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -1178,8 +1225,8 @@ const PaymentIntegration: Component = () => {
                 </svg>
               </div>
               <div>
-                <div class="font-semibold text-neutral-900">E-Wallet</div>
-                <div class="text-sm text-neutral-600">
+                <div class="font-semibold theme-text-primary">{t("eWallet")}</div>
+                <div class="text-sm theme-text-secondary">
                   GoPay, OVO, DANA, ShopeePay
                 </div>
               </div>
@@ -1192,12 +1239,12 @@ const PaymentIntegration: Component = () => {
               }`}
             ></div>
           </div>
-          <div class="text-xs text-neutral-600">
+          <div class="text-xs text-neutral-300">
             Last Sync: {integrationStatus().ewallet.lastSync}
           </div>
         </div>
 
-        <div class="bg-white rounded-xl p-4 border border-neutral-200">
+        <div class="theme-card rounded-xl p-4 border theme-border">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -1218,8 +1265,8 @@ const PaymentIntegration: Component = () => {
                 </svg>
               </div>
               <div>
-                <div class="font-semibold text-neutral-900">Online Gateway</div>
-                <div class="text-sm text-neutral-600">
+                <div class="font-semibold theme-text-primary">Online Gateway</div>
+                <div class="text-sm theme-text-secondary">
                   Midtrans, Xendit, PayPal
                 </div>
               </div>
@@ -1232,7 +1279,7 @@ const PaymentIntegration: Component = () => {
               }`}
             ></div>
           </div>
-          <div class="text-xs text-neutral-600">
+          <div class="text-xs text-neutral-200">
             Last Sync: {integrationStatus().onlineGateway.lastSync}
           </div>
         </div>
@@ -1275,22 +1322,24 @@ const PaymentIntegration: Component = () => {
 
 // Main Finance Component
 const Finance: Component = () => {
+  const { t } = useLanguage();
+  
   return (
     <Layout>
       <div class="space-y-8">
         {/* Header */}
-        <div class="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-700 rounded-2xl p-8 text-white">
+        <Card class="mb-8">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-3xl font-bold mb-2">Finance Management</h1>
-              <p class="text-green-100 text-lg">
-                Kelola keuangan dan pembayaran iuran warga dengan mudah
+              <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t("financeManagement")}</h1>
+              <p class="text-gray-600 dark:text-slate-300 text-lg">
+                {t("financeDescription")}
               </p>
             </div>
-            <div class="text-6xl opacity-20">
+            <div class="bg-blue-600 p-4 rounded-xl shadow-lg">
               <svg
-                width="64"
-                height="64"
+                width="32"
+                height="32"
                 viewBox="0 0 24 24"
                 fill="none"
                 class="text-white"
@@ -1305,7 +1354,7 @@ const Finance: Component = () => {
               </svg>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Finance Overview */}
         <FinanceOverview />

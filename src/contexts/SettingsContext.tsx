@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   createSignal,
+  createEffect,
   ParentComponent,
   Accessor,
   Setter,
@@ -36,22 +37,27 @@ export const SettingsProvider: ParentComponent = (props) => {
     try {
       const saved = localStorage.getItem("akusara-settings");
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        console.log("Loaded settings from localStorage:", parsed);
+        return parsed;
       }
     } catch (error) {
       console.warn("Failed to load settings from localStorage:", error);
     }
 
-    return {
-      language: "id",
-      theme: "light",
+    const defaultSettings: SettingsState = {
+      language: "id" as const,
+      theme: "light" as const,
       notifications: {
         email: true,
         sms: false,
         push: true,
       },
-      defaultPage: "dashboard",
+      defaultPage: "dashboard" as const,
     };
+    
+    console.log("Using default settings:", defaultSettings);
+    return defaultSettings;
   };
 
   const [settings, setSettings] = createSignal<SettingsState>(loadSettings());
@@ -67,6 +73,9 @@ export const SettingsProvider: ParentComponent = (props) => {
 
   // Apply theme to document
   const applyTheme = (theme: "light" | "dark") => {
+    console.log("Applying theme:", theme);
+    console.log("Current HTML classes before:", document.documentElement.className);
+    
     if (theme === "dark") {
       document.documentElement.classList.add("dark");
       document.documentElement.style.colorScheme = "dark";
@@ -74,10 +83,20 @@ export const SettingsProvider: ParentComponent = (props) => {
       document.documentElement.classList.remove("dark");
       document.documentElement.style.colorScheme = "light";
     }
+    
+    console.log("Current HTML classes after:", document.documentElement.className);
+    console.log("Theme applied successfully:", theme);
   };
 
   // Initialize theme on load
+  console.log("Initial settings loaded:", settings());
   applyTheme(settings().theme);
+
+  // React to theme changes
+  createEffect(() => {
+    console.log("Theme effect triggered, current theme:", settings().theme);
+    applyTheme(settings().theme);
+  });
 
   const setLanguage = (language: "en" | "id") => {
     const newSettings = { ...settings(), language };
@@ -92,11 +111,17 @@ export const SettingsProvider: ParentComponent = (props) => {
   };
 
   const setTheme = (theme: "light" | "dark") => {
+    console.log("setTheme called with:", theme);
     const newSettings = { ...settings(), theme };
     setSettings(newSettings);
     saveSettings(newSettings);
     applyTheme(theme);
     console.log(`Theme changed to: ${theme}`);
+    
+    // Force a slight delay to ensure DOM updates
+    setTimeout(() => {
+      console.log("Final HTML classes:", document.documentElement.className);
+    }, 100);
   };
 
   const updateNotifications = (

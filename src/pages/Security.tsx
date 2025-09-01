@@ -1,4 +1,6 @@
-import { Component, createSignal, For, Show, onMount } from "solid-js";
+import { Component, createSignal, For, Show, onMount, createEffect } from "solid-js";
+import { useSettings } from "../contexts/SettingsContext";
+import { useLanguage } from "../contexts/LanguageContext";
 import Layout from "../layouts/Layout";
 import {
   SecurityAnalyticsChart,
@@ -7,9 +9,18 @@ import {
 
 // Enhanced Card Component
 const Card: Component<{ children: any; class?: string }> = (props) => {
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+    console.log('Security Card theme updated to:', settings().theme);
+  });
+  
   return (
     <div
-      class={`bg-neutral-100 rounded-2xl p-6 shadow-xl border border-neutral-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
+      class={`theme-card rounded-lg p-6 shadow-sm border transition-all duration-300 hover:shadow-md ${
         props.class || ""
       }`}
     >
@@ -20,28 +31,37 @@ const Card: Component<{ children: any; class?: string }> = (props) => {
 
 // Status Badge Component
 const StatusBadge: Component<{ status: string }> = (props) => {
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+  });
+
   const getStatusColor = () => {
+    const isDark = currentTheme() === 'dark';
     switch (props.status.toLowerCase()) {
       case "online":
       case "active":
       case "authorized":
       case "recording":
       case "4k":
-        return "bg-accent-emerald/20 text-accent-emerald";
+        return isDark ? "bg-emerald-900/50 text-emerald-400" : "bg-accent-emerald/20 text-accent-emerald";
       case "medium":
       case "1080p":
-        return "bg-accent-amber/20 text-accent-amber";
+        return isDark ? "bg-amber-900/50 text-amber-400" : "bg-accent-amber/20 text-accent-amber";
       case "offline":
       case "denied":
       case "high":
       case "suspicious":
       case "720p":
-        return "bg-accent-rose/20 text-accent-rose";
+        return isDark ? "bg-rose-900/50 text-rose-400" : "bg-accent-rose/20 text-accent-rose";
       case "low":
       case "connected":
-        return "bg-blue-100 text-blue-800";
+        return isDark ? "bg-blue-900/50 text-blue-400" : "bg-blue-100 text-blue-800";
       default:
-        return "bg-neutral-100 text-neutral-600";
+        return isDark ? "bg-slate-700 text-slate-300" : "bg-gray-100 text-gray-600";
     }
   };
 
@@ -56,6 +76,7 @@ const StatusBadge: Component<{ status: string }> = (props) => {
 
 // Advanced Camera Monitoring System
 const AdvancedCameraSystem = () => {
+  const { t } = useLanguage();
   const [cameras] = createSignal([
     {
       id: 1,
@@ -127,7 +148,7 @@ const AdvancedCameraSystem = () => {
       <Card>
         <div class="flex justify-between items-center mb-6">
           <div>
-            <div class="text-xl font-bold text-neutral-900 mb-2 flex items-center gap-3">
+            <div class="text-xl font-bold theme-text-primary mb-2 flex items-center gap-3">
               <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-2 rounded-xl shadow-lg">
                 <svg
                   width="24"
@@ -150,8 +171,8 @@ const AdvancedCameraSystem = () => {
               </div>
               Advanced Camera Monitoring System
             </div>
-            <div class="text-sm text-neutral-600">
-              {detectedPersons()} Active Detections •{" "}
+            <div class="text-sm theme-text-secondary">
+              {detectedPersons()} {t('activeDetections')} •{" "}
               {cameras().filter((c) => c.status === "recording").length}/
               {cameras().length} Cameras Online • {totalRecordingHours()}h Total
               Recording
@@ -161,7 +182,7 @@ const AdvancedCameraSystem = () => {
         </div>
 
         {/* Main Camera Display */}
-        <div class="relative w-full h-64 bg-neutral-900 rounded-xl overflow-hidden mb-6">
+        <div class="relative w-full h-64 bg-gray-900 dark:bg-slate-900 rounded-xl overflow-hidden mb-6">
           <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
 
           {/* Recording Indicator */}
@@ -226,7 +247,7 @@ const AdvancedCameraSystem = () => {
           <div class="absolute inset-0 flex items-center justify-center">
             <div class="text-center text-white">
               <div class="mb-6 flex justify-center">
-                <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20">
+                <div class="bg-gray-800 backdrop-blur-sm p-6 rounded-2xl border border-white/20">
                   <svg
                     width="72"
                     height="72"
@@ -275,18 +296,18 @@ const AdvancedCameraSystem = () => {
               <div
                 class={`relative border-2 rounded-lg p-3 cursor-pointer transition-all hover:scale-105 ${
                   selectedCamera() === camera.id
-                    ? "border-blue-500 bg-blue-50 shadow-lg"
-                    : "border-neutral-200 hover:border-neutral-300"
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 shadow-lg"
+                    : "border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500"
                 }`}
                 onClick={() => setSelectedCamera(camera.id)}
               >
-                <div class="aspect-video bg-neutral-800 rounded-lg flex items-center justify-center mb-2 overflow-hidden relative">
+                <div class="aspect-video bg-gray-800 dark:bg-slate-900 rounded-lg flex items-center justify-center mb-2 overflow-hidden relative">
                   <svg
                     width="20"
                     height="20"
                     viewBox="0 0 24 24"
                     fill="none"
-                    class="text-neutral-400"
+                    class="theme-text-tertiary"
                   >
                     <path d="M23 7l-7 5 7 5V7z" fill="currentColor" />
                     <rect
@@ -303,14 +324,14 @@ const AdvancedCameraSystem = () => {
                   </Show>
                 </div>
                 <div class="space-y-1">
-                  <div class="text-xs font-semibold text-neutral-800 truncate">
+                  <div class="text-xs font-semibold theme-text-primary truncate">
                     {camera.name}
                   </div>
-                  <div class="text-xs text-neutral-600 truncate">
+                  <div class="text-xs theme-text-secondary truncate">
                     {camera.location}
                   </div>
                   <div class="flex items-center justify-between">
-                    <span class="text-xs text-neutral-500">
+                    <span class="text-xs theme-text-tertiary">
                       {camera.resolution} • {camera.fps}fps
                     </span>
                     <StatusBadge status={camera.status} />
@@ -323,33 +344,33 @@ const AdvancedCameraSystem = () => {
 
         {/* Camera Details Panel */}
         <Show when={getCurrentCamera()}>
-          <div class="bg-white rounded-xl p-4 border border-neutral-200">
-            <div class="text-sm font-semibold text-neutral-800 mb-3">
+          <div class="bg-white dark:bg-slate-700 rounded-xl p-4 border border-gray-200 dark:border-slate-600">
+            <div class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
               Camera Technical Specifications
             </div>
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <div class="text-xs text-neutral-500">Resolution & FPS</div>
-                <div class="text-sm font-medium text-neutral-800">
+                <div class="text-xs text-gray-500 dark:text-slate-400">Resolution & FPS</div>
+                <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                   {getCurrentCamera()?.resolution} @ {getCurrentCamera()?.fps}
                   fps
                 </div>
               </div>
               <div>
-                <div class="text-xs text-neutral-500">Zoom Capability</div>
-                <div class="text-sm font-medium text-neutral-800">
+                <div class="text-xs text-gray-500 dark:text-slate-400">Zoom Capability</div>
+                <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                   {getCurrentCamera()?.zoom}
                 </div>
               </div>
               <div>
-                <div class="text-xs text-neutral-500">Storage Type</div>
-                <div class="text-sm font-medium text-neutral-800">
+                <div class="text-xs text-gray-500 dark:text-slate-400">Storage Type</div>
+                <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                   {getCurrentCamera()?.storage}
                 </div>
               </div>
               <div>
-                <div class="text-xs text-neutral-500">Last Maintenance</div>
-                <div class="text-sm font-medium text-neutral-800">
+                <div class="text-xs text-gray-500 dark:text-slate-400">Last Maintenance</div>
+                <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                   {getCurrentCamera()?.lastMaintenance}
                 </div>
               </div>
@@ -361,30 +382,30 @@ const AdvancedCameraSystem = () => {
                   class={`w-2 h-2 rounded-full ${
                     getCurrentCamera()?.nightVision
                       ? "bg-green-500"
-                      : "bg-gray-300"
+                      : "bg-gray-300 dark:bg-gray-600"
                   }`}
                 ></span>
-                <span class="text-xs text-neutral-600">Night Vision</span>
+                <span class="text-xs text-gray-600 dark:text-slate-400">Night Vision</span>
               </div>
               <div class="flex items-center gap-2">
                 <span
                   class={`w-2 h-2 rounded-full ${
                     getCurrentCamera()?.motionDetection
                       ? "bg-green-500"
-                      : "bg-gray-300"
+                      : "bg-gray-300 dark:bg-gray-600"
                   }`}
                 ></span>
-                <span class="text-xs text-neutral-600">Motion Detection</span>
+                <span class="text-xs text-gray-600 dark:text-slate-400">Motion Detection</span>
               </div>
               <div class="flex items-center gap-2">
                 <span
                   class={`w-2 h-2 rounded-full ${
                     getCurrentCamera()?.audioRecording
                       ? "bg-green-500"
-                      : "bg-gray-300"
+                      : "bg-gray-300 dark:bg-gray-600"
                   }`}
                 ></span>
-                <span class="text-xs text-neutral-600">Audio Recording</span>
+                <span class="text-xs text-gray-600 dark:text-slate-400">Audio Recording</span>
               </div>
             </div>
           </div>
@@ -409,7 +430,7 @@ const AdvancedCameraSystem = () => {
                 fill="currentColor"
               />
             </svg>
-            Open All Camera Feeds
+            {t('openAllCameraFeeds')}
           </button>
           <button class="bg-gradient-to-r from-emerald-600 to-green-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center justify-center gap-2">
             <svg
@@ -438,6 +459,7 @@ const AdvancedCameraSystem = () => {
 
 // Advanced Suspicious Activity Detection System
 const SuspiciousActivityDetection = () => {
+  const { t } = useLanguage();
   const [suspiciousActivities] = createSignal([
     {
       id: 1,
@@ -504,13 +526,13 @@ const SuspiciousActivityDetection = () => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "high":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-400 border-red-200 dark:border-red-700";
       case "medium":
-        return "bg-amber-100 text-amber-800 border-amber-200";
+        return "bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-700";
       case "low":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-400 border-green-200 dark:border-green-700";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-300 border-gray-200 dark:border-slate-600";
     }
   };
 
@@ -532,7 +554,7 @@ const SuspiciousActivityDetection = () => {
   return (
     <Card>
       <div class="mb-6">
-        <div class="text-xl font-bold text-neutral-900 mb-2 flex items-center gap-3">
+        <div class="text-xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
           <div class="bg-gradient-to-r from-red-600 to-rose-700 p-2 rounded-xl shadow-lg">
             <svg
               width="24"
@@ -558,7 +580,7 @@ const SuspiciousActivityDetection = () => {
           </div>
           Advanced Suspicious Activity Detection
         </div>
-        <div class="text-sm text-neutral-600">
+        <div class="text-sm text-gray-600 dark:text-slate-400">
           AI-powered real-time threat analysis and behavior monitoring
         </div>
       </div>
@@ -569,19 +591,19 @@ const SuspiciousActivityDetection = () => {
           <div class="text-lg font-bold text-blue-700">
             {alertStats().totalToday}
           </div>
-          <div class="text-xs text-blue-600">Total Today</div>
+          <div class="text-xs text-blue-600">{t('totalToday')}</div>
         </div>
         <div class="text-center p-3 bg-red-50 rounded-lg">
           <div class="text-lg font-bold text-red-700">
             {alertStats().highPriority}
           </div>
-          <div class="text-xs text-red-600">High Priority</div>
+          <div class="text-xs text-red-600">{t('highPriority')}</div>
         </div>
         <div class="text-center p-3 bg-green-50 rounded-lg">
           <div class="text-lg font-bold text-green-700">
             {alertStats().resolved}
           </div>
-          <div class="text-xs text-green-600">Resolved</div>
+          <div class="text-xs text-green-600">{t('resolved')}</div>
         </div>
         <div class="text-center p-3 bg-amber-50 rounded-lg">
           <div class="text-lg font-bold text-amber-700">
@@ -685,27 +707,27 @@ const SuspiciousActivityDetection = () => {
                       )}
                     </div>
                     <div>
-                      <div class="font-semibold text-neutral-900">
+                      <div class="font-semibold text-gray-900 dark:text-white">
                         {activity.type}
                       </div>
-                      <div class="text-sm text-neutral-600">
+                      <div class="text-sm text-gray-600 dark:text-slate-400">
                         {activity.location}
                       </div>
                     </div>
                   </div>
 
-                  <div class="text-sm text-neutral-700 mb-2">
+                  <div class="text-sm text-gray-800 dark:text-slate-300 mb-2">
                     <strong>AI Analysis:</strong> {activity.aiAnalysis}
                   </div>
 
-                  <div class="flex items-center gap-4 text-xs text-neutral-600 mb-3">
+                  <div class="flex items-center gap-4 text-xs text-gray-600 dark:text-slate-400 mb-3">
                     <span class="flex items-center gap-1">
                       <svg
                         width="12"
                         height="12"
                         viewBox="0 0 24 24"
                         fill="none"
-                        class="text-neutral-500"
+                        class="text-gray-500 dark:text-slate-500"
                       >
                         <rect
                           x="3"
@@ -750,7 +772,7 @@ const SuspiciousActivityDetection = () => {
                         height="12"
                         viewBox="0 0 24 24"
                         fill="none"
-                        class="text-neutral-500"
+                        class="text-gray-500 dark:text-slate-500"
                       >
                         <circle
                           cx="12"
@@ -782,7 +804,7 @@ const SuspiciousActivityDetection = () => {
                   <div class="flex flex-wrap gap-2">
                     <For each={activity.actions}>
                       {(action) => (
-                        <button class="px-3 py-1 bg-white border border-neutral-300 rounded-lg text-xs font-medium hover:bg-neutral-50 transition-colors">
+                        <button class="px-3 py-1 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg text-xs font-medium hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors">
                           {action}
                         </button>
                       )}
@@ -791,8 +813,11 @@ const SuspiciousActivityDetection = () => {
                 </div>
 
                 <div class="ml-4">
-                  <div class="w-16 h-16 bg-neutral-800 rounded-lg flex items-center justify-center">
-                    <span class="text-neutral-400 text-xs">📸</span>
+                  <div class="w-16 h-16 bg-gray-800 dark:bg-slate-900 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -802,8 +827,11 @@ const SuspiciousActivityDetection = () => {
       </div>
 
       <div class="mt-6 flex gap-3">
-        <button class="bg-gradient-to-r from-red-600 to-rose-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex-1">
-          🚨 Emergency Response Protocol
+        <button class="bg-gradient-to-r from-red-600 to-rose-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex-1 flex items-center justify-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-white">
+            <path d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Emergency Response Protocol
         </button>
         <button class="bg-gradient-to-r from-purple-600 to-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center gap-2">
           <svg
@@ -828,6 +856,7 @@ const SuspiciousActivityDetection = () => {
 
 // Face Recognition & Access Control System
 const FaceRecognitionSystem = () => {
+  const { t } = useLanguage();
   const [recognitionStats] = createSignal({
     totalFaces: 2847,
     todayRecognitions: 156,
@@ -888,7 +917,7 @@ const FaceRecognitionSystem = () => {
   return (
     <Card>
       <div class="mb-6">
-        <div class="text-xl font-bold text-neutral-900 mb-2 flex items-center gap-3">
+        <div class="text-xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
           <div class="bg-gradient-to-r from-blue-600 to-cyan-700 p-2 rounded-xl shadow-lg">
             <svg
               width="24"
@@ -922,7 +951,7 @@ const FaceRecognitionSystem = () => {
           </div>
           Face Recognition & Access Control
         </div>
-        <div class="text-sm text-neutral-600">
+        <div class="text-sm text-gray-600 dark:text-slate-400">
           AI-powered facial recognition and access management system
         </div>
       </div>
@@ -939,13 +968,13 @@ const FaceRecognitionSystem = () => {
           <div class="text-2xl font-bold text-emerald-700">
             {recognitionStats().todayRecognitions}
           </div>
-          <div class="text-xs text-emerald-600">Today's Recognitions</div>
+          <div class="text-xs text-emerald-600">{t('todaysRecognitions')}</div>
         </div>
         <div class="bg-purple-50 rounded-xl p-4 text-center">
           <div class="text-2xl font-bold text-purple-700">
             {recognitionStats().accuracy}%
           </div>
-          <div class="text-xs text-purple-600">Recognition Accuracy</div>
+          <div class="text-xs text-purple-600">{t('recognitionAccuracy')}</div>
         </div>
       </div>
 
@@ -955,7 +984,7 @@ const FaceRecognitionSystem = () => {
           <div class="text-lg font-bold text-green-700">
             {recognitionStats().activeEmployees}
           </div>
-          <div class="text-xs text-green-600">Active Employees</div>
+          <div class="text-xs text-green-600">{t('activeEmployees')}</div>
         </div>
         <div class="bg-amber-50 rounded-lg p-3 text-center">
           <div class="text-lg font-bold text-amber-700">
@@ -973,13 +1002,13 @@ const FaceRecognitionSystem = () => {
 
       {/* Recent Recognition Events */}
       <div class="space-y-3 mb-6">
-        <div class="text-sm font-semibold text-neutral-800">
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-200">
           Recent Recognition Events
         </div>
         <div class="max-h-64 overflow-y-auto space-y-2">
           <For each={recentRecognitions()}>
             {(recognition) => (
-              <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-neutral-200 hover:shadow-md transition-shadow">
+              <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-neutral-200 hover:shadow-md transition-shadow">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 bg-neutral-300 rounded-full flex items-center justify-center">
                     <svg
@@ -1064,6 +1093,7 @@ const FaceRecognitionSystem = () => {
 
 // System Status & Network Security
 const SystemSecurityStatus = () => {
+  const { t } = useLanguage();
   const [systemStatus] = createSignal([
     { name: "Camera Network", status: "online", uptime: "99.8%" },
     { name: "Face Recognition AI", status: "online", uptime: "99.5%" },
@@ -1077,7 +1107,7 @@ const SystemSecurityStatus = () => {
 
   const [securityMetrics] = createSignal({
     encryptionLevel: "AES-256",
-    firewallStatus: "Active",
+    firewallStatus: t("firewallActive"),
     intrusionAttempts: 0,
     dataIntegrity: "100%",
     lastSecurityScan: "2024-08-29 09:00:00",
@@ -1086,7 +1116,7 @@ const SystemSecurityStatus = () => {
   return (
     <Card>
       <div class="mb-6">
-        <div class="text-xl font-bold text-neutral-900 mb-2 flex items-center gap-3">
+        <div class="text-xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
           <div class="bg-gradient-to-r from-green-600 to-emerald-700 p-2 rounded-xl shadow-lg">
             <svg
               width="24"
@@ -1108,10 +1138,10 @@ const SystemSecurityStatus = () => {
               />
             </svg>
           </div>
-          System Security Status
+          {t('systemSecurityStatus')}
         </div>
-        <div class="text-sm text-neutral-600">
-          Comprehensive security system monitoring and health check
+        <div class="text-sm text-gray-600 dark:text-slate-400">
+          {t('comprehensiveSecurityMonitoring')}
         </div>
       </div>
 
@@ -1119,31 +1149,31 @@ const SystemSecurityStatus = () => {
       <div class="bg-green-50 rounded-xl p-4 mb-6">
         <div class="text-center mb-4">
           <div class="text-3xl font-bold text-green-700">99.7%</div>
-          <div class="text-sm text-green-600">Overall System Uptime</div>
+          <div class="text-sm text-green-600">{t('overallSystemUptime')}</div>
         </div>
 
         <div class="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <div class="text-neutral-600">Encryption</div>
-            <div class="font-semibold text-neutral-800">
+            <div class="text-gray-600 dark:text-slate-400">{t('encryptionLevel')}</div>
+            <div class="font-semibold text-gray-800 dark:text-gray-200">
               {securityMetrics().encryptionLevel}
             </div>
           </div>
           <div>
-            <div class="text-neutral-600">Firewall</div>
-            <div class="font-semibold text-neutral-800">
+            <div class="text-gray-600 dark:text-slate-400">{t('firewallStatus')}</div>
+            <div class="font-semibold text-gray-800 dark:text-gray-200">
               {securityMetrics().firewallStatus}
             </div>
           </div>
           <div>
-            <div class="text-neutral-600">Intrusion Attempts</div>
-            <div class="font-semibold text-neutral-800">
-              {securityMetrics().intrusionAttempts} Today
+            <div class="text-gray-600 dark:text-slate-400">{t('intrusionAttempts')}</div>
+            <div class="font-semibold text-gray-800 dark:text-gray-200">
+              {securityMetrics().intrusionAttempts} {t('today')}
             </div>
           </div>
           <div>
-            <div class="text-neutral-600">Data Integrity</div>
-            <div class="font-semibold text-neutral-800">
+            <div class="text-gray-600 dark:text-slate-400">{t('dataIntegrity')}</div>
+            <div class="font-semibold text-gray-800 dark:text-gray-200">
               {securityMetrics().dataIntegrity}
             </div>
           </div>
@@ -1152,13 +1182,13 @@ const SystemSecurityStatus = () => {
 
       {/* System Components Status */}
       <div class="space-y-2 mb-6">
-        <div class="text-sm font-semibold text-neutral-800">
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-200">
           System Components
         </div>
         <div class="max-h-64 overflow-y-auto space-y-2">
           <For each={systemStatus()}>
             {(item) => (
-              <div class="flex justify-between items-center py-2 px-3 bg-white rounded-lg border border-neutral-200">
+              <div class="flex justify-between items-center py-2 px-3 bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600">
                 <div class="flex items-center gap-3">
                   <div
                     class={`w-3 h-3 rounded-full ${
@@ -1167,11 +1197,11 @@ const SystemSecurityStatus = () => {
                         : "bg-red-500"
                     }`}
                   ></div>
-                  <span class="text-sm text-neutral-700">{item.name}</span>
+                  <span class="text-sm text-gray-700 dark:text-slate-300">{item.name}</span>
                 </div>
                 <div class="text-right">
                   <StatusBadge status={item.status} />
-                  <div class="text-xs text-neutral-500 mt-1">{item.uptime}</div>
+                  <div class="text-xs text-gray-500 dark:text-slate-400 mt-1">{item.uptime}</div>
                 </div>
               </div>
             )}
@@ -1179,8 +1209,8 @@ const SystemSecurityStatus = () => {
         </div>
       </div>
 
-      <div class="text-xs text-neutral-500 mb-4">
-        Last Security Scan: {securityMetrics().lastSecurityScan}
+      <div class="text-xs text-gray-500 dark:text-slate-400 mb-4">
+        {t('lastSecurityScan')}: {securityMetrics().lastSecurityScan}
       </div>
 
       <div class="grid grid-cols-2 gap-3">
@@ -1276,22 +1306,24 @@ const SecurityContent = () => {
 
 // Main Security Component
 const Security = () => {
+  const { t } = useLanguage();
+  
   return (
     <Layout>
       <div class="space-y-8">
         {/* Header */}
-        <div class="bg-gradient-to-r from-red-600 via-rose-600 to-pink-700 rounded-2xl p-8 text-white">
+        <Card class="mb-8">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-3xl font-bold mb-2">Security & Monitoring</h1>
-              <p class="text-red-100 text-lg">
-                Pantau sistem keamanan, CCTV, dan deteksi wajah secara real-time
+              <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t("securityMonitoring")}</h1>
+              <p class="text-gray-600 dark:text-slate-400 text-lg">
+                {t("securityDescription")}
               </p>
             </div>
-            <div class="text-6xl opacity-20">
+            <div class="bg-blue-600 p-4 rounded-xl shadow-lg">
               <svg
-                width="64"
-                height="64"
+                width="32"
+                height="32"
                 viewBox="0 0 24 24"
                 fill="none"
                 class="text-white"
@@ -1310,7 +1342,7 @@ const Security = () => {
               </svg>
             </div>
           </div>
-        </div>
+        </Card>
 
         <SecurityContent />
       </div>

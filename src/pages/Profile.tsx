@@ -1,12 +1,22 @@
-import { Component, createSignal, For, Show } from "solid-js";
+import { Component, createSignal, For, Show, createEffect } from "solid-js";
 import Layout from "../layouts/Layout";
 import { useSettings } from "../contexts/SettingsContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 // Enhanced Card Component
 const Card: Component<{ children: any; class?: string }> = (props) => {
+  const { settings } = useSettings();
+  const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
+  
+  // Update theme reactively
+  createEffect(() => {
+    setCurrentTheme(settings().theme);
+    console.log('Profile Card theme updated to:', settings().theme);
+  });
+  
   return (
     <div
-      class={`bg-white rounded-2xl p-6 shadow-xl border border-neutral-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
+      class={`theme-card rounded-2xl p-6 shadow-xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
         props.class || ""
       }`}
     >
@@ -17,6 +27,7 @@ const Card: Component<{ children: any; class?: string }> = (props) => {
 
 // User Information Section
 const UserInformationSection: Component = () => {
+  const { t } = useLanguage();
   const [isEditing, setIsEditing] = createSignal(false);
   const [userInfo, setUserInfo] = createSignal({
     name: "Ahmad Wijaya",
@@ -139,7 +150,7 @@ const UserInformationSection: Component = () => {
                   stroke-width="2"
                 />
               </svg>
-              {isEditing() ? "Cancel" : "Edit Profile"}
+              {isEditing() ? t('cancel') : t('editProfile')}
             </button>
           </div>
 
@@ -189,7 +200,7 @@ const UserInformationSection: Component = () => {
                   onClick={handleSaveProfile}
                   class="bg-green-600 text-white px-6 py-2 rounded-xl font-medium hover:bg-green-700 transition-colors"
                 >
-                  Save Changes
+                  {t('saveChanges')}
                 </button>
                 <button
                   onClick={() => setIsEditing(false)}
@@ -325,7 +336,7 @@ const UserInformationSection: Component = () => {
                     />
                   </svg>
                   <div>
-                    <p class="text-sm text-neutral-600">Last Login</p>
+                    <p class="text-sm text-neutral-600">{t('lastLogin')}</p>
                     <p class="font-medium text-neutral-900">
                       {userInfo().lastLogin}
                     </p>
@@ -684,6 +695,7 @@ const ActivitySummarySection: Component = () => {
 
 // Account Security Section
 const AccountSecuritySection: Component = () => {
+  const { t } = useLanguage();
   const [twoFactorEnabled, setTwoFactorEnabled] = createSignal(true);
   const [showChangePassword, setShowChangePassword] = createSignal(false);
   const [passwordForm, setPasswordForm] = createSignal({
@@ -1034,7 +1046,7 @@ const AccountSecuritySection: Component = () => {
               onClick={logoutAllOtherSessions}
               class="text-sm text-red-600 hover:text-red-700 font-medium"
             >
-              Logout All Others
+              {t('logoutAllOthers')}
             </button>
           </div>
           <div class="space-y-3">
@@ -1111,22 +1123,24 @@ const AccountSecuritySection: Component = () => {
 
 // Main Profile Component
 const Profile: Component = () => {
+  const { t } = useLanguage();
+  
   return (
     <Layout activeSection="profile">
       <div class="space-y-8">
         {/* Header */}
-        <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-700 rounded-2xl p-8 text-white">
+        <Card class="mb-8">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-3xl font-bold mb-2">User Profile</h1>
-              <p class="text-indigo-100 text-lg">
-                Kelola informasi pribadi, aktivitas, dan keamanan akun Anda
+              <h1 class="text-3xl font-bold text-gray-900 mb-2">{t("userProfile")}</h1>
+              <p class="text-gray-600 text-lg">
+                {t("profileDescription")}
               </p>
             </div>
-            <div class="text-6xl opacity-20">
+            <div class="bg-blue-600 p-4 rounded-xl shadow-lg">
               <svg
-                width="64"
-                height="64"
+                width="32"
+                height="32"
                 viewBox="0 0 24 24"
                 fill="none"
                 class="text-white"
@@ -1150,7 +1164,7 @@ const Profile: Component = () => {
               </svg>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Profile Sections */}
         <UserInformationSection />
