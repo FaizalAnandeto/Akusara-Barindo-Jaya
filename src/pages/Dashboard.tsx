@@ -158,6 +158,7 @@ const CameraMonitoring = () => {
 
 // Smart Clustering Component
 const SmartClustering = () => {
+  const { t } = useLanguage();
   const { settings } = useSettings();
   const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
   
@@ -179,10 +180,10 @@ const SmartClustering = () => {
         <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zM12 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zM12 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-3z" clip-rule="evenodd"></path>
         </svg>
-        Smart Clustering Status
+        {t('smartClusteringStatus')}
       </div>
       <div class="text-sm theme-text-secondary mb-5">
-        Otomatisasi berdasarkan pengenalan wajah
+        {t('aiAutomationBasedOnFaceRecognition')}
       </div>
       <ul class="space-y-2">
         <For each={smartClusteringStatus()}>

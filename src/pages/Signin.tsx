@@ -62,9 +62,9 @@ const SignIn = () => {
 
     if (!isFormValid()) {
       if (email().trim() === "" || password().trim() === "") {
-        setShowValidationMessage("Mohon isi semua field yang diperlukan!");
+        setShowValidationMessage(t("pleaseEnterAllFields"));
       } else if (!isValidEmail(email())) {
-        setShowValidationMessage("Format email tidak valid!");
+        setShowValidationMessage(t("invalidEmailFormat"));
       }
       // Hide message after 3 seconds
       setTimeout(() => setShowValidationMessage(""), 3000);
