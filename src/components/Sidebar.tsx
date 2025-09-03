@@ -1,23 +1,13 @@
 import { For } from "solid-js";
 import { A } from "@solidjs/router";
 import NavigationItem from "./NavigationItem";
-import { useSettings } from "../contexts/SettingsContext";
 import { useLanguage } from "../contexts/LanguageContext";
 
 // Sidebar Component
 const Sidebar = (props) => {
-  const { settings, setTheme, setLanguage } = useSettings();
   const { t } = useLanguage();
-  
-  const toggleTheme = () => {
-    setTheme(settings().theme === "light" ? "dark" : "light");
-  };
 
-  const toggleLanguage = () => {
-    setLanguage(settings().language === "id" ? "en" : "id");
-  };
-
-  const navItems = [
+  const navItems = () => [
     {
       id: "dashboard",
       icon: (
@@ -126,7 +116,7 @@ const Sidebar = (props) => {
       {/* Navigation Items - Scrollable */}
       <div class="flex-1 px-2 overflow-y-auto scrollbar-hide">
         <div class="space-y-1">
-          <For each={navItems}>
+          <For each={navItems()}>
             {(item) => (
               <NavigationItem
                 id={item.id}
@@ -141,88 +131,7 @@ const Sidebar = (props) => {
         </div>
       </div>
 
-      {/* Theme and Language Controls */}
-      <div class={`transition-all duration-300 ${props.isOpen ? "px-4 mb-4" : "px-2 mb-4"}`}>
-        {/* Theme Toggle */}
-        <div class={`flex items-center mb-3 ${props.isOpen ? "justify-between" : "justify-center"}`}>
-          {props.isOpen && (
-            <span class="text-slate-300 text-sm font-medium">
-              {settings().theme === "light" ? t("lightMode") : t("darkMode")}
-            </span>
-          )}
-          <button
-            onClick={toggleTheme}
-            class={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800 group ${
-              settings().theme === "dark" ? "bg-blue-600" : "bg-slate-600"
-            }`}
-          >
-            <span
-              class={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                settings().theme === "dark" ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-            {/* Icons */}
-            <svg class={`absolute left-1 h-3 w-3 text-slate-400 transition-opacity ${
-              settings().theme === "dark" ? "opacity-0" : "opacity-100"
-            }`} fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
-            </svg>
-            <svg class={`absolute right-1 h-3 w-3 text-blue-400 transition-opacity ${
-              settings().theme === "dark" ? "opacity-100" : "opacity-0"
-            }`} fill="currentColor" viewBox="0 0 20 20">
-              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-            </svg>
-
-            {/* Tooltip for collapsed state */}
-            {!props.isOpen && (
-              <div class="absolute left-14 bg-slate-800 text-white px-3 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 whitespace-nowrap border border-slate-700">
-                <div class="font-medium text-sm">
-                  {settings().theme === "light" ? t("switchToDark") : t("switchToLight")}
-                </div>
-                <div class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-slate-800 rotate-45 border-l border-b border-slate-700"></div>
-              </div>
-            )}
-          </button>
-        </div>
-
-        {/* Language Toggle */}
-        <div class={`flex items-center ${props.isOpen ? "justify-between" : "justify-center"}`}>
-          {props.isOpen && (
-            <span class="text-slate-300 text-sm font-medium">
-              {settings().language === "id" ? t("bahasa") : t("english")}
-            </span>
-          )}
-          <button
-            onClick={toggleLanguage}
-            class={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-slate-800 group ${
-              settings().language === "en" ? "bg-green-600" : "bg-slate-600"
-            }`}
-          >
-            <span
-              class={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                settings().language === "en" ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-            {/* Language indicators */}
-            <span class={`absolute left-1 text-xs font-bold transition-opacity ${
-              settings().language === "id" ? "opacity-100 text-slate-400" : "opacity-0"
-            }`}>ID</span>
-            <span class={`absolute right-1 text-xs font-bold transition-opacity ${
-              settings().language === "en" ? "opacity-100 text-green-400" : "opacity-0"
-            }`}>EN</span>
-
-            {/* Tooltip for collapsed state */}
-            {!props.isOpen && (
-              <div class="absolute left-14 bg-slate-800 text-white px-3 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 whitespace-nowrap border border-slate-700">
-                <div class="font-medium text-sm">
-                  {settings().language === "id" ? t("switchToEnglish") : t("switchToIndonesian")}
-                </div>
-                <div class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-slate-800 rotate-45 border-l border-b border-slate-700"></div>
-              </div>
-            )}
-          </button>
-        </div>
-      </div>
+  {/* Theme and Language Controls removed (handled by Navbar) */}
 
       {/* Admin Panel - Fixed at bottom of sidebar */}
       <div class={`${props.isOpen ? "p-3" : "p-2"} flex-shrink-0`}>

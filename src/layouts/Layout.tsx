@@ -1,6 +1,7 @@
 import { createSignal } from "solid-js";
 import { useLocation } from "@solidjs/router";
 import Sidebar from "../components/Sidebar";
+import { Navbar } from "../components";
 import { useSettings } from "../contexts/SettingsContext";
 
 const Layout = (props) => {
@@ -25,22 +26,27 @@ const Layout = (props) => {
 
   return (
     <div 
-      class={`min-h-screen transition-colors duration-300 ${
+      class={`h-screen transition-colors duration-300 ${
         settings().theme === "dark" ? "bg-slate-900" : "bg-gray-50"
       }`}
     >
-      <div class="flex min-h-screen">
+      <div class="flex h-screen overflow-hidden">
         <Sidebar
           activeSection={getActiveSection}
           onToggle={toggleSidebar}
           isOpen={sidebarOpen()}
         />
         <div
-          class={`flex-1 p-8 overflow-y-auto transition-all duration-300 ${
+          class={`flex-1 h-full overflow-y-auto overflow-x-hidden transition-all duration-300 ${
             sidebarOpen() ? "ml-72" : "ml-16"
           }`}
         >
-          {props.children}
+          {/* Global navbar for all pages */}
+          <Navbar />
+          {/* Page content */}
+          <div class="p-8">
+            {props.children}
+          </div>
         </div>
       </div>
     </div>

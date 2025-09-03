@@ -1,3 +1,4 @@
 export { default as Sidebar } from "./Sidebar";
 export { default as NavigationItem } from "./NavigationItem";
 export { default as MenuButton } from "./MenuButton";
+export { default as Navbar } from "./Navbar";

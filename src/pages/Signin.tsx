@@ -2,6 +2,7 @@ import { createSignal, onMount, onCleanup } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useSettings } from "../contexts/SettingsContext";
+import { loginUser } from "../services/api";
 
 const SignIn = () => {
   const { t } = useLanguage();
@@ -10,6 +11,7 @@ const SignIn = () => {
   const [password, setPassword] = createSignal("");
   const [rememberMe, setRememberMe] = createSignal(false);
   const [showValidationMessage, setShowValidationMessage] = createSignal("");
+  const [isLoading, setIsLoading] = createSignal(false);
   const navigate = useNavigate();
 
   // Force dark theme for sign-in page only
@@ -57,50 +59,65 @@ const SignIn = () => {
     );
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!isFormValid()) {
       if (email().trim() === "" || password().trim() === "") {
-        setShowValidationMessage(t("pleaseEnterAllFields"));
+        setShowValidationMessage("Mohon isi semua field yang diperlukan!");
       } else if (!isValidEmail(email())) {
-        setShowValidationMessage(t("invalidEmailFormat"));
+        setShowValidationMessage("Format email tidak valid!");
       }
       // Hide message after 3 seconds
       setTimeout(() => setShowValidationMessage(""), 3000);
       return;
     }
 
+    setIsLoading(true);
     setShowValidationMessage("");
-    console.log("Login attempt:", {
-      email: email(),
-      password: password(),
-      rememberMe: rememberMe(),
-    });
-    
-    // Restore previous theme before navigation using SettingsContext
-    const previousTheme = sessionStorage.getItem('previous-theme') || 'light';
-    
-    // Remove sign-in specific styling
-    document.body.classList.remove('signin-page');
-    document.body.style.background = '';
-    
-    // Restore theme using SettingsContext to ensure proper state management
-    if (previousTheme === 'light' || previousTheme === 'dark') {
-      setTheme(previousTheme as 'light' | 'dark');
+
+    try {
+      // Call backend API
+      const response = await loginUser({
+        username: email(),
+        password: password(),
+      });
+
+      console.log("Login successful:", response);
+      
+      // Store user info if needed
+      localStorage.setItem('user', JSON.stringify(response));
+      
+      // Restore previous theme before navigation using SettingsContext
+      const previousTheme = sessionStorage.getItem('previous-theme') || 'light';
+      
+      // Remove sign-in specific styling
+      document.body.classList.remove('signin-page');
+      document.body.style.background = '';
+      
+      // Restore theme using SettingsContext to ensure proper state management
+      if (previousTheme === 'light' || previousTheme === 'dark') {
+        setTheme(previousTheme as 'light' | 'dark');
+      }
+      
+      // Clean up session storage
+      sessionStorage.removeItem('previous-theme');
+      
+      // Small delay to ensure theme is applied before navigation
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 50);
+
+    } catch (error) {
+      console.error("Login failed:", error);
+      setShowValidationMessage(error.message || "Login gagal. Silakan coba lagi.");
+      setTimeout(() => setShowValidationMessage(""), 3000);
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Clean up session storage
-    sessionStorage.removeItem('previous-theme');
-    
-    // Small delay to ensure theme is applied before navigation
-    setTimeout(() => {
-      // Add your authentication logic here
-      navigate("/dashboard");
-    }, 50);
   };
 
-  const handleButtonClick = () => {
+  const handleButtonClick = async () => {
     if (!isFormValid()) {
       if (email().trim() === "" || password().trim() === "") {
         setShowValidationMessage("Mohon isi semua field yang diperlukan!");
@@ -110,26 +127,49 @@ const SignIn = () => {
       setTimeout(() => setShowValidationMessage(""), 3000);
       return;
     }
-    
-    // Restore previous theme before navigation using SettingsContext
-    const previousTheme = sessionStorage.getItem('previous-theme') || 'light';
-    
-    // Remove sign-in specific styling
-    document.body.classList.remove('signin-page');
-    document.body.style.background = '';
-    
-    // Restore theme using SettingsContext to ensure proper state management
-    if (previousTheme === 'light' || previousTheme === 'dark') {
-      setTheme(previousTheme as 'light' | 'dark');
+
+    setIsLoading(true);
+    setShowValidationMessage("");
+
+    try {
+      // Call backend API
+      const response = await loginUser({
+        username: email(),
+        password: password(),
+      });
+
+      console.log("Login successful:", response);
+      
+      // Store user info if needed
+      localStorage.setItem('user', JSON.stringify(response));
+      
+      // Restore previous theme before navigation using SettingsContext
+      const previousTheme = sessionStorage.getItem('previous-theme') || 'light';
+      
+      // Remove sign-in specific styling
+      document.body.classList.remove('signin-page');
+      document.body.style.background = '';
+      
+      // Restore theme using SettingsContext to ensure proper state management
+      if (previousTheme === 'light' || previousTheme === 'dark') {
+        setTheme(previousTheme as 'light' | 'dark');
+      }
+      
+      // Clean up session storage
+      sessionStorage.removeItem('previous-theme');
+      
+      // Small delay to ensure theme is applied before navigation
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 50);
+
+    } catch (error) {
+      console.error("Login failed:", error);
+      setShowValidationMessage(error.message || "Login gagal. Silakan coba lagi.");
+      setTimeout(() => setShowValidationMessage(""), 3000);
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Clean up session storage
-    sessionStorage.removeItem('previous-theme');
-    
-    // Small delay to ensure theme is applied before navigation
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 50);
   };
 
   // Modern gradient background instead of image
@@ -401,17 +441,33 @@ const SignIn = () => {
                   {/* Ultra Compact Submit Button */}
                   <button
                     type="submit"
-                    class="w-full bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white py-2 px-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-800 transform hover:-translate-y-0.5 transition-all duration-300 shadow-lg hover:shadow-blue-500/40 focus:outline-none focus:ring-1 focus:ring-blue-400 focus:ring-offset-1 focus:ring-offset-transparent flex items-center justify-center space-x-1 text-xs"
+                    disabled={isLoading()}
+                    class={`w-full ${isLoading() 
+                      ? 'bg-gray-500 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transform hover:-translate-y-0.5'
+                    } text-white py-2 px-3 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-blue-500/40 focus:outline-none focus:ring-1 focus:ring-blue-400 focus:ring-offset-1 focus:ring-offset-transparent flex items-center justify-center space-x-1 text-xs`}
                     onClick={handleButtonClick}
                   >
-                    <span>Masuk</span>
-                    <svg
-                      class="w-3 h-3"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
-                    </svg>
+                    {isLoading() ? (
+                      <>
+                        <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Masuk...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Masuk</span>
+                        <svg
+                          class="w-3 h-3"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+                        </svg>
+                      </>
+                    )}
                   </button>
 
                   {/* Ultra Compact Divider */}
