@@ -1,7 +1,8 @@
-import { For } from "solid-js";
+import { For, createSignal, onMount, onCleanup, Show } from "solid-js";
 import { A } from "@solidjs/router";
 import NavigationItem from "./NavigationItem";
 import { useLanguage } from "../contexts/LanguageContext";
+import { getStoredUser } from "../utils/auth";
 
 // Sidebar Component
 const Sidebar = (props) => {
@@ -59,6 +60,21 @@ const Sidebar = (props) => {
       subtitle: t("userProfileSystem"),
     },
   ];
+
+  const [user, setUser] = createSignal(getStoredUser());
+
+  onMount(() => {
+    const update = () => setUser(getStoredUser());
+    update();
+    const onStorage = (e: StorageEvent) => { if (e.key === 'user') update(); };
+    window.addEventListener('storage', onStorage);
+    const onUserUpdated = () => update();
+    window.addEventListener('user-updated', onUserUpdated as EventListener);
+    onCleanup(() => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('user-updated', onUserUpdated as EventListener);
+    });
+  });
 
   return (
     <div
@@ -155,8 +171,10 @@ const Sidebar = (props) => {
             ${props.isOpen ? "w-9 h-9" : "w-10 h-10"}
           `}
           >
-            <div class="w-full h-full rounded-full bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-              A
+            <div class="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+              <Show when={user()?.avatar} fallback={<span>{user()?.initials || (user()?.name?.[0]?.toUpperCase()) || 'U'}</span>}>
+                <img src={user()?.avatar} alt="avatar" class="w-full h-full object-cover" />
+              </Show>
             </div>
           </div>
           <div
@@ -167,19 +185,19 @@ const Sidebar = (props) => {
             }`}
           >
             <div class="text-white font-medium text-sm whitespace-nowrap">
-              Admin
+              {user()?.name || 'User'}
             </div>
             <div class="text-blue-200/70 text-xs whitespace-nowrap">
-              Admin@app.com
+              {user()?.email || user()?.username || 'user@localhost'}
             </div>
           </div>
 
           {/* Tooltip for collapsed state */}
           {!props.isOpen && (
             <div class="absolute left-16 bg-slate-800 text-white px-3 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 whitespace-nowrap border border-slate-700">
-              <div class="font-medium text-sm">User Profile</div>
+              <div class="font-medium text-sm">{t('userProfile')}</div>
               <div class="text-xs text-blue-200 mt-0.5">
-                View and edit profile
+                {t('viewAndEditProfile')}
               </div>
               {/* Arrow */}
               <div class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-slate-800 rotate-45 border-l border-b border-slate-700"></div>

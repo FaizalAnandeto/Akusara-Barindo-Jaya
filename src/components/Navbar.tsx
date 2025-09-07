@@ -1,8 +1,10 @@
-import { createSignal, createMemo, onMount, onCleanup } from "solid-js";
+import { createSignal, createMemo, onMount, onCleanup, For, Show } from "solid-js";
 import { useLocation, useNavigate } from "@solidjs/router";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useSettings } from "../contexts/SettingsContext";
 import { searchItems } from "../search/searchIndex";
+import { fetchNotifications, markNotificationRead, clearAllNotifications, type Notification as Notif } from "../services/api";
+import { getStoredUser, clearStoredUser } from "../utils/auth";
 
 const Navbar = () => {
   // Contexts for language and theme
@@ -46,6 +48,9 @@ const Navbar = () => {
   // Dropdowns: notifications and profile
   const [notifOpen, setNotifOpen] = createSignal(false);
   const [profileOpen, setProfileOpen] = createSignal(false);
+  const [notifs, setNotifs] = createSignal<Notif[]>([]);
+  const [user, setUser] = createSignal(getStoredUser());
+  const unreadCount = createMemo(() => notifs().filter(n => !n.read).length);
   const [searchOpen, setSearchOpen] = createSignal(false);
   const [searchQuery, setSearchQuery] = createSignal("");
   const results = createMemo(() => searchItems(searchQuery(), 8));
@@ -60,6 +65,20 @@ const Navbar = () => {
   let searchMenuRef: HTMLDivElement | undefined;
 
   onMount(() => {
+    // Update user state on mount and when storage changes
+    const updateUser = () => setUser(getStoredUser());
+    updateUser();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'user') updateUser();
+    };
+    const onUserUpdated = () => updateUser();
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('user-updated', onUserUpdated as EventListener);
+    onCleanup(() => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('user-updated', onUserUpdated as EventListener);
+    });
+
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as Node;
       if (
@@ -87,6 +106,17 @@ const Navbar = () => {
     document.addEventListener("click", onDocClick);
     onCleanup(() => document.removeEventListener("click", onDocClick));
   });
+
+  // Load notifications when opening the menu first time or on mount
+  const loadNotifs = async () => {
+    try {
+      const data = await fetchNotifications();
+      setNotifs(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  onMount(loadNotifs);
 
   const toggleTheme = () => {
     setTheme(isDark() ? "light" : "dark");
@@ -136,7 +166,7 @@ const Navbar = () => {
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Search features, pages, or actions..."
+                placeholder={t('searchPlaceholder')}
                 class="h-10 w-full rounded-full border border-gray-200 bg-white text-gray-900 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-100 pl-10 pr-4 text-sm placeholder-gray-500 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/60 hover:border-gray-300 dark:hover:border-slate-500 transition"
                 value={searchQuery()}
                 onInput={(e) => {
@@ -217,7 +247,7 @@ const Navbar = () => {
                     ))}
                   </ul>
                 ) : (
-                  <div class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">No results</div>
+                  <div class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{t('noResults')}</div>
                 )}
               </div>
             </div>
@@ -346,45 +376,77 @@ const Navbar = () => {
         class="relative h-10 w-10 rounded-full border border-gray-200 dark:border-slate-600 flex items-center justify-center text-gray-600 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/80 active:scale-95 transition duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30"
                 aria-haspopup="menu"
                 aria-expanded={notifOpen()}
-                onClick={() => setNotifOpen((v) => !v)}
+                onClick={async () => {
+                  if (!notifOpen()) await loadNotifs();
+                  setNotifOpen((v) => !v);
+                }}
               >
         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                   <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm8-6-1.7-1.7V11a6.3 6.3 0 0 0-5-6.18V4a1.3 1.3 0 1 0-2.6 0v.82A6.3 6.3 0 0 0 6.3 11v3.3L4.6 16a1 1 0 0 0 .7 1.7h15.4a1 1 0 0 0 .7-1.7Z" />
                 </svg>
+                <Show when={unreadCount() > 0}>
+                  <span class="absolute -top-1 -right-1 h-5 min-w-[1.25rem] px-1 rounded-full bg-blue-600 text-white text-[10px] leading-5 text-center">
+                    {unreadCount()}
+                  </span>
+                </Show>
               </button>
               {/* Menu */}
               <div
                 ref={notifMenuRef}
-                class={`absolute right-0 mt-2 w-80 origin-top-right rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black/5 p-2 transition-all duration-150 ${
+                class={`absolute right-0 mt-2 w-80 origin-top-right rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl ring-1 ring-black/5 p-2 transition-all duration-150 text-gray-900 dark:text-gray-100 z-50 ${
                   notifOpen() ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
                 }`}
               >
-                <div class="px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Notifications</div>
-        <ul class="divide-y divide-gray-100 dark:divide-slate-700">
-                  <li class="py-2 flex gap-3 items-start hover:bg-gray-50 dark:hover:bg-slate-700/60 rounded-md px-2 cursor-pointer">
-                    <span class="mt-0.5 h-2.5 w-2.5 rounded-full bg-blue-500"></span>
-                    <div class="text-sm">
-                      <div class="text-gray-900 dark:text-gray-100">System maintenance scheduled</div>
-                      <div class="text-gray-500 dark:text-gray-400 text-xs">Today at 22:00</div>
-                    </div>
-                  </li>
-                  <li class="py-2 flex gap-3 items-start hover:bg-gray-50 dark:hover:bg-slate-700/60 rounded-md px-2 cursor-pointer">
-          <span class="mt-0.5 h-2.5 w-2.5 rounded-full bg-blue-500"></span>
-                    <div class="text-sm">
-                      <div class="text-gray-900 dark:text-gray-100">2 alerts need attention</div>
-                      <div class="text-gray-500 dark:text-gray-400 text-xs">5 minutes ago</div>
-                    </div>
-                  </li>
-                </ul>
-                <button
-                  class="mt-2 w-full text-center text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 py-1.5 rounded-md hover:bg-blue-50/40 dark:hover:bg-blue-900/20"
-                  onClick={() => {
-                    navigate('/dashboard');
-                    setNotifOpen(false);
-                  }}
-                >
-                  View all
-                </button>
+                {/* Caret */}
+                <div class="absolute -top-1 right-6 w-3 h-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rotate-45"></div>
+        <div class="px-2.5 py-2 rounded-lg bg-gradient-to-r from-indigo-500/5 to-blue-500/5 border border-gray-100 dark:border-slate-700/60 mb-2">
+                  <div class="flex items-center justify-between">
+          <div class="text-xs font-semibold text-gray-800 dark:text-gray-300">{t('notifications')}</div>
+          <div class="text-[11px] px-2 py-0.5 rounded-full bg-blue-600 text-white dark:bg-blue-500 dark:text-white border border-transparent">{unreadCount()} {t('unread')}</div>
+                  </div>
+                </div>
+        <Show when={notifs().length > 0} fallback={<div class="px-4 py-6 text-sm text-gray-500 dark:text-gray-400 text-center">{t('caughtUp')}</div>}>
+                  <ul class="space-y-1 max-h-80 overflow-auto pr-1">
+                    <For each={notifs()}>{(n) => (
+                      <li>
+                        <div class="group flex items-start gap-3 rounded-lg px-3 py-2 border border-transparent hover:border-gray-200 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                          <button
+                            class="mt-0.5 h-2.5 w-2.5 rounded-full flex-shrink-0 ring-2 ring-offset-2 ring-offset-transparent"
+                            classList={{ 'bg-blue-500 ring-blue-200': !n.read, 'bg-gray-300 ring-transparent': n.read }}
+                            aria-label={n.read ? 'read' : 'unread'}
+                            onClick={async () => {
+                              try { await markNotificationRead(n.id); setNotifs((prev) => prev.map(x => x.id === n.id ? { ...x, read: true } : x)); } catch (e) { console.error(e); }
+                            }}
+                          />
+                          <div class="text-sm flex-1 min-w-0">
+                            <div class="text-gray-900 dark:text-gray-100 truncate font-medium">{n.title}</div>
+                            <div class="text-gray-500 dark:text-gray-400 text-xs truncate">{n.description}</div>
+                          </div>
+                          <div class="text-[10px] text-gray-400 ml-2 whitespace-nowrap">
+                            {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </li>
+                    )}</For>
+                  </ul>
+                </Show>
+                <div class="flex gap-2 mt-2">
+                  <button
+                    class="flex-1 text-center text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 py-1.5 rounded-md hover:bg-blue-50/40 dark:hover:bg-blue-900/20"
+                    onClick={async () => { try { await clearAllNotifications(); setNotifs((prev) => prev.map(n => ({...n, read: true}))); } catch (e) { console.error(e); } }}
+                  >
+                    {t('markAllAsRead')}
+                  </button>
+                  <button
+                    class="flex-1 text-center text-sm text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white py-1.5 rounded-md hover:bg-gray-100/60 dark:hover:bg-slate-700/70"
+                    onClick={() => {
+                      navigate('/dashboard');
+                      setNotifOpen(false);
+                    }}
+                  >
+                    {t('viewAll')}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -392,35 +454,43 @@ const Navbar = () => {
       <div class="relative">
               <button
                 ref={profileBtnRef}
-        class="h-10 w-10 rounded-full bg-yellow-400 text-white text-sm font-semibold flex items-center justify-center ring-0 hover:brightness-105 active:scale-95 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30"
+        class="h-10 w-10 rounded-full overflow-hidden bg-yellow-400 text-white text-sm font-semibold flex items-center justify-center ring-0 hover:brightness-105 active:scale-95 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30"
                 aria-haspopup="menu"
                 aria-expanded={profileOpen()}
                 onClick={() => setProfileOpen((v) => !v)}
                 title="Profile"
               >
-                N
+                <Show when={user()?.avatar} fallback={<span>{user()?.initials || (user()?.name?.[0]?.toUpperCase()) || 'U'}</span>}>
+                  <img src={user()?.avatar} alt="avatar" class="w-full h-full object-cover" />
+                </Show>
               </button>
               <span class="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white dark:ring-slate-800"></span>
               {/* Menu */}
               <div
                 ref={profileMenuRef}
-                class={`absolute right-0 mt-2 w-64 origin-top-right rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl ring-1 ring-black/5 overflow-hidden transition-all duration-150 ${
+                class={`absolute right-0 mt-2 w-72 origin-top-right rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl ring-1 ring-black/5 overflow-hidden transition-all duration-150 text-gray-900 dark:text-gray-100 z-50 ${
                   profileOpen() ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
                 }`}
               >
+                {/* Caret */}
+                <div class="absolute -top-1 right-6 w-3 h-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rotate-45"></div>
                 {/* Header */}
-                <div class="px-4 py-3 bg-gradient-to-r from-yellow-400/20 to-rose-400/20 dark:from-yellow-300/10 dark:to-rose-300/10 border-b border-gray-100 dark:border-slate-700">
+                <div class="px-4 py-3 bg-gradient-to-r from-indigo-500/20 to-blue-500/20 dark:from-indigo-400/10 dark:to-blue-400/10 border-b border-gray-100 dark:border-slate-700">
                   <div class="flex items-center gap-3">
-                    <div class="h-9 w-9 rounded-full bg-yellow-400 text-white flex items-center justify-center font-semibold">N</div>
+                    <div class="h-9 w-9 rounded-full overflow-hidden bg-yellow-400 text-white flex items-center justify-center font-semibold ring-2 ring-yellow-200">
+                      <Show when={user()?.avatar} fallback={<span>{user()?.initials || (user()?.name?.[0]?.toUpperCase()) || 'U'}</span>}>
+                        <img src={user()?.avatar} alt="avatar" class="w-full h-full object-cover" />
+                      </Show>
+                    </div>
                     <div>
-                      <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">Naufal</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">admin@akusara.com</div>
+                      <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{user()?.name || 'User'}</div>
+                      <div class="text-xs text-gray-700 dark:text-gray-400">{user()?.email || user()?.username || 'user@localhost'} • {user()?.role || 'User'}</div>
                     </div>
                   </div>
                 </div>
                 <div class="py-2">
                   <button
-                    class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/60"
+                    class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-900 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/60 font-medium"
                     onClick={() => {
                       navigate('/profile');
                       setProfileOpen(false);
@@ -429,10 +499,10 @@ const Navbar = () => {
                     <svg class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                       <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5Z" />
                     </svg>
-                    Profile
+                    {t('profile')}
                   </button>
                   <button
-                    class="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/60"
+                    class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-900 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/60 font-medium"
                     onClick={() => {
                       navigate('/settings');
                       setProfileOpen(false);
@@ -441,12 +511,13 @@ const Navbar = () => {
                     <svg class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                       <path d="M12 8a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm-9 4a9 9 0 1 1 9 9 9.01 9.01 0 0 1-9-9Z" />
                     </svg>
-                    Settings
+                    {t('settings')}
                   </button>
                   <div class="my-1 border-t border-gray-100 dark:border-slate-700" />
                   <button
-                    class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/60"
+                    class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-900 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/60 font-medium"
                     onClick={() => {
+                      clearStoredUser();
                       navigate('/signin');
                       setProfileOpen(false);
                     }}
@@ -454,7 +525,7 @@ const Navbar = () => {
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                       <path d="M16 13v-2H7V7l-5 5 5 5v-4h9Zm5-10H9a2 2 0 0 0-2 2v3h2V5h12v14H9v-3H7v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Z" />
                     </svg>
-                    Sign out
+                    {t('signOut')}
                   </button>
                 </div>
               </div>

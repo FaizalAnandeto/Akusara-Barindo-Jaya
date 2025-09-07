@@ -132,3 +132,82 @@ html:not(.dark) [class*="text-neutral-"] {
 html:not(.dark) [class*="border-neutral-"] {
   border-color: #e5e7eb !important;
 }
+
+/* ===== Dark mode hardening for legacy light classes ===== */
+/* Fix black text in dark mode when components use *-900 text colors */
+html.dark [class*="text-gray-900"],
+html.dark [class*="text-neutral-900"],
+html.dark [class*="text-black"] {
+  color: #e5e7eb !important; /* slate-200 */
+}
+html.dark [class*="text-gray-800"],
+html.dark [class*="text-neutral-800"] {
+  color: #e5e7eb !important; /* slate-200 */
+}
+
+/* Tune secondary/tertiary text often used in Profile */
+html.dark [class*="text-gray-700"],
+html.dark [class*="text-neutral-700"],
+html.dark [class*="text-gray-600"],
+html.dark [class*="text-neutral-600"] {
+  color: #cbd5e1 !important; /* slate-300 */
+}
+
+/* Replace pure white surfaces used by cards/inputs with dark surfaces */
+html.dark [class*="bg-white"] {
+  background-color: #1e293b !important; /* slate-800 card */
+}
+
+/* Dim light-tint backgrounds to subtle dark tints */
+html.dark [class*="bg-neutral-50"],
+html.dark [class*="bg-blue-50"],
+html.dark [class*="bg-amber-50"],
+html.dark [class*="bg-green-50"],
+html.dark [class*="bg-purple-50"],
+html.dark [class*="bg-orange-50"],
+html.dark [class*="bg-emerald-50"],
+html.dark [class*="bg-yellow-50"],
+html.dark [class*="bg-gray-50"],
+html.dark [class*="bg-red-50"] {
+  background-color: #0f172a !important; /* slate-900 subtle */
+}
+
+/* Dim 100-tint backgrounds as well (common in badges and pills) */
+html.dark [class*="bg-neutral-100"],
+html.dark [class*="bg-blue-100"],
+html.dark [class*="bg-amber-100"],
+html.dark [class*="bg-green-100"],
+html.dark [class*="bg-purple-100"],
+html.dark [class*="bg-orange-100"],
+html.dark [class*="bg-emerald-100"],
+html.dark [class*="bg-yellow-100"],
+html.dark [class*="bg-gray-100"],
+html.dark [class*="bg-red-100"] {
+  background-color: #111827 !important; /* gray-900-ish subtle */
+}
+
+/* Borders: lighten from light palette to dark contrast */
+html.dark [class*="border-gray-200"],
+html.dark [class*="border-neutral-200"],
+html.dark [class*="border-slate-200"] {
+  border-color: #475569 !important; /* slate-600 */
+}
+html.dark [class*="border-gray-100"],
+html.dark [class*="border-neutral-100"],
+html.dark [class*="border-slate-100"] {
+  border-color: #475569 !important; /* slate-600 */
+}
+
+/* Inputs: ensure text remains readable in dark backgrounds */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  color: #e5e7eb; /* slate-200 */
+}
+
+/* Utility: force true white for icon/flag parts even in dark mode */
+html.dark .keep-white {
+  background-color: #ffffff !important;
+  color: #ffffff !important;
+}
+

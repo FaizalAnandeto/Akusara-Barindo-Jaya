@@ -377,17 +377,17 @@ const NetworkPerformance = () => {
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div class="text-center p-4 theme-card rounded-lg border theme-border">
           <div class="text-3xl font-bold text-green-600 font-poppins">{networkStats().uptime}%</div>
-          <div class="text-sm theme-text-secondary font-medium">Uptime</div>
+          <div class="text-sm theme-text-secondary font-medium">{t('uptime')}</div>
         </div>
         <div class="text-center p-4 theme-card rounded-lg border theme-border">
           <div class="text-3xl font-bold text-blue-600 font-poppins">{networkStats().latency}ms</div>
-          <div class="text-sm theme-text-secondary font-medium">Latency</div>
+          <div class="text-sm theme-text-secondary font-medium">{t('latency')}</div>
         </div>
       </div>
 
         <div class="mt-4 p-4 theme-card rounded-lg border theme-border">
           <div class="flex justify-between items-center mb-2">
-            <span class="theme-text-primary font-medium">Bandwidth Usage</span>
+            <span class="theme-text-primary font-medium">{t('bandwidthUsage')}</span>
             <span class="text-xl font-bold theme-text-primary font-poppins">
               {networkStats().bandwidth}%
             </span>
@@ -398,7 +398,7 @@ const NetworkPerformance = () => {
               style={`width: ${networkStats().bandwidth}%;`}>
             </div>
           </div>
-          <div class="text-xs theme-text-tertiary mt-1 font-medium">of 1Gbps</div>
+          <div class="text-xs theme-text-tertiary mt-1 font-medium">{t('of1Gbps')}</div>
         </div>
       </div>
     </Card>
@@ -544,7 +544,7 @@ const TechnicianList = () => {
                 </div>
               </div>
               <div class="flex items-center gap-3">
-                <div class="text-sm text-neutral-600 dark:text-slate-300">{tech.tasks} tasks</div>
+                <div class="text-sm text-neutral-600 dark:text-slate-300">{tech.tasks} {t('tasks')}</div>
                 <StatusBadge status={tech.status === "Active" ? "Active" : "Pending"} />
               </div>
             </li>

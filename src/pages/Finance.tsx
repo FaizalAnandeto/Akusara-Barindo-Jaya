@@ -333,7 +333,7 @@ const FinanceOverview: Component = () => {
       {/* Progress Bar */}
       <div class="mb-6">
         <div class="flex justify-between text-sm font-medium theme-text-primary mb-2">
-          <span>Progress Pembayaran</span>
+          <span>{t('paymentProgress')}</span>
           <span>{financeData().paidPercentage}% {t('complete')}</span>
         </div>
         <div class="w-full theme-bg-subtle rounded-full h-3">
@@ -394,7 +394,7 @@ const FinanceOverview: Component = () => {
               stroke-linejoin="round"
             />
           </svg>
-          Export PDF
+          {t('exportPdf')}
         </button>
 
         <button class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center gap-2">
@@ -438,7 +438,7 @@ const FinanceOverview: Component = () => {
               stroke-linecap="round"
             />
           </svg>
-          Export Excel
+          {t('exportExcel')}
         </button>
       </div>
     </Card>
@@ -597,19 +597,19 @@ const PaymentStatus: Component = () => {
                 {t("residents")}
               </th>
               <th class="text-left p-4 font-semibold theme-text-primary">
-                Blok/Unit
+                {t('blockUnit')}
               </th>
               <th class="text-left p-4 font-semibold theme-text-primary">
-                Nominal
+                {t('amount')}
               </th>
               <th class="text-left p-4 font-semibold theme-text-primary">
-                Status
+                {t('status')}
               </th>
               <th class="text-left p-4 font-semibold theme-text-primary">
-                Metode
+                {t('paymentMethodLabel')}
               </th>
               <th class="text-left p-4 font-semibold theme-text-primary">
-                Actions
+                {t('actions')}
               </th>
             </tr>
           </thead>
@@ -627,7 +627,7 @@ const PaymentStatus: Component = () => {
                           {resident.name}
                         </div>
                         <div class="text-sm theme-text-secondary">
-                          Due: {resident.dueDate}
+                          {t('date')}: {resident.dueDate}
                         </div>
                       </div>
                     </div>
@@ -673,7 +673,7 @@ const PaymentStatus: Component = () => {
                             stroke-width="2"
                           />
                         </svg>
-                        View
+                        {t('view')}
                       </button>
 
                       <Show when={resident.status === "unpaid"}>
@@ -693,7 +693,7 @@ const PaymentStatus: Component = () => {
                               stroke-linejoin="round"
                             />
                           </svg>
-                          Remind
+                          {t('remind')}
                         </button>
                       </Show>
 
@@ -714,7 +714,7 @@ const PaymentStatus: Component = () => {
                               stroke-linejoin="round"
                             />
                           </svg>
-                          Approve
+                          {t('approve')}
                         </button>
                       </Show>
                     </div>
@@ -790,6 +790,19 @@ const TransactionHistory: Component = () => {
     },
   ]);
 
+  const typeLabel = (type: string) => {
+    switch (type) {
+      case "Monthly Fee":
+        return t("monthlyFee");
+      case "Security Deposit":
+        return t("securityDeposit");
+      case "Maintenance Fee":
+        return t("maintenanceFee");
+      default:
+        return type;
+    }
+  };
+
   return (
     <Card>
       <div class="mb-6">
@@ -811,16 +824,16 @@ const TransactionHistory: Component = () => {
               />
             </svg>
           </div>
-          Transaction History
+          {t('transactionHistory')}
         </div>
         <div class="text-sm theme-text-secondary">
-          Riwayat transaksi dan pembayaran terbaru
+          {t('transactionHistoryDesc')}
         </div>
       </div>
 
       {/* Filter by Month/Year */}
       <div class="flex flex-wrap gap-3 mb-6">
-        <select class="theme-card border theme-border rounded-lg px-4 py-2 theme-text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+  <select class="theme-card border theme-border rounded-lg px-4 py-2 theme-text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           <option>Agustus 2025</option>
           <option>Juli 2025</option>
           <option>Juni 2025</option>
@@ -828,10 +841,10 @@ const TransactionHistory: Component = () => {
         </select>
 
         <select class="theme-card border theme-border rounded-lg px-4 py-2 theme-text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option>Semua Jenis</option>
-          <option>Monthly Fee</option>
-          <option>Security Deposit</option>
-          <option>Maintenance Fee</option>
+          <option>{t('allTypes')}</option>
+          <option>{t('monthlyFee')}</option>
+          <option>{t('securityDeposit')}</option>
+          <option>{t('maintenanceFee')}</option>
         </select>
       </div>
 
@@ -854,7 +867,7 @@ const TransactionHistory: Component = () => {
                       {transaction.resident} • {transaction.block}
                     </div>
                     <div class="text-sm theme-text-secondary">
-                      {transaction.id} • {transaction.type}
+                      {transaction.id} • {typeLabel(transaction.type)}
                     </div>
                   </div>
                 </div>
@@ -872,7 +885,7 @@ const TransactionHistory: Component = () => {
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span class="text-sm theme-text-secondary">
-                    Payment Method: {transaction.method}
+                    {t('paymentMethodLabel')}: {transaction.method}
                   </span>
                 </div>
 
@@ -935,10 +948,10 @@ const AddTransaction: Component = () => {
               />
             </svg>
           </div>
-          Add Manual Transaction
+          {t("addManualTransaction")}
         </div>
         <div class="text-sm theme-text-secondary">
-          Input pembayaran manual (transfer tunai, offline payment)
+          {t("manualPaymentInputDesc")}
         </div>
       </div>
 
@@ -957,11 +970,11 @@ const AddTransaction: Component = () => {
 
           <div>
             <label class="block text-sm font-medium theme-text-primary mb-2">
-              Blok/Unit
+              {t("blockUnit")}
             </label>
             <input
               type="text"
-              placeholder="Contoh: A-12"
+              placeholder={t("blockUnitPlaceholder")}
               class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -970,7 +983,7 @@ const AddTransaction: Component = () => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium theme-text-primary mb-2">
-              Nominal (Rp)
+              {t("nominal")} (Rp)
             </label>
             <input
               type="number"
@@ -981,24 +994,24 @@ const AddTransaction: Component = () => {
 
           <div>
             <label class="block text-sm font-medium theme-text-primary mb-2">
-              Jenis Pembayaran
+              {t("paymentType")}
             </label>
             <select class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <option value="monthly">Iuran Bulanan</option>
-              <option value="security">Security Deposit</option>
-              <option value="maintenance">Maintenance Fee</option>
-              <option value="other">Lainnya</option>
+              <option value="monthly">{t("monthlyFee")}</option>
+              <option value="security">{t("securityDeposit")}</option>
+              <option value="maintenance">{t("maintenanceFee")}</option>
+              <option value="other">{t("other")}</option>
             </select>
           </div>
         </div>
 
         <div>
           <label class="block text-sm font-medium theme-text-primary mb-2">
-            Metode Pembayaran
+            {t("paymentMethodLabel")}
           </label>
           <select class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            <option value="cash">Cash (Tunai)</option>
-            <option value="transfer">Transfer Bank</option>
+            <option value="cash">{t("cash")}</option>
+            <option value="transfer">{t("bankTransfer")}</option>
             <option value="ewallet">{t("eWallet")}</option>
             <option value="qris">QRIS</option>
           </select>
@@ -1006,10 +1019,10 @@ const AddTransaction: Component = () => {
 
         <div>
           <label class="block text-sm font-medium theme-text-primary mb-2">
-            Catatan (Opsional)
+            {t("notesOptional")}
           </label>
           <textarea
-            placeholder="Tambahkan catatan jika diperlukan..."
+            placeholder={t("addNotePlaceholder")}
             rows="3"
             class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           ></textarea>
@@ -1035,14 +1048,14 @@ const AddTransaction: Component = () => {
                 stroke-linejoin="round"
               />
             </svg>
-            Simpan Transaksi
+            {t("saveTransaction")}
           </button>
 
           <button
             type="button"
             class="theme-bg-subtle theme-text-primary px-6 py-3 rounded-xl font-medium transition-all duration-300"
           >
-            Reset Form
+            {t("resetForm")}
           </button>
         </div>
       </form>
@@ -1092,10 +1105,10 @@ const PaymentIntegration: Component = () => {
               />
             </svg>
           </div>
-          Payment Integration
+          {t("paymentIntegration")}
         </div>
         <div class="text-sm theme-text-secondary">
-          Status integrasi sistem pembayaran online
+          {t("paymentIntegrationDesc")}
         </div>
       </div>
 
@@ -1124,9 +1137,9 @@ const PaymentIntegration: Component = () => {
                 </svg>
               </div>
               <div>
-                <div class="font-semibold theme-text-primary">QRIS Payment</div>
+                <div class="font-semibold theme-text-primary">{t("qrisPayment")}</div>
                 <div class="text-sm theme-text-secondary">
-                  Quick Response Indonesia Standard
+                  {t("quickResponseIndonesiaStandard")}
                 </div>
               </div>
             </div>
@@ -1139,7 +1152,7 @@ const PaymentIntegration: Component = () => {
             ></div>
           </div>
           <div class="text-xs text-neutral-300">
-            Last Sync: {integrationStatus().qris.lastSync}
+            {t("lastSync")}: {integrationStatus().qris.lastSync}
           </div>
         </div>
 
@@ -1182,9 +1195,9 @@ const PaymentIntegration: Component = () => {
                 </svg>
               </div>
               <div>
-                <div class="font-semibold theme-text-primary">Bank Transfer</div>
+                <div class="font-semibold theme-text-primary">{t("bankTransfer")}</div>
                 <div class="text-sm theme-text-secondary">
-                  Automatic bank integration
+                  {t("automaticBankIntegration")}
                 </div>
               </div>
             </div>
@@ -1197,7 +1210,7 @@ const PaymentIntegration: Component = () => {
             ></div>
           </div>
           <div class="text-xs text-neutral-300">
-            Last Sync: {integrationStatus().bankTransfer.lastSync}
+            {t("lastSync")}: {integrationStatus().bankTransfer.lastSync}
           </div>
         </div>
 
@@ -1227,7 +1240,7 @@ const PaymentIntegration: Component = () => {
               <div>
                 <div class="font-semibold theme-text-primary">{t("eWallet")}</div>
                 <div class="text-sm theme-text-secondary">
-                  GoPay, OVO, DANA, ShopeePay
+                  {t("popularEwallets")}
                 </div>
               </div>
             </div>
@@ -1240,7 +1253,7 @@ const PaymentIntegration: Component = () => {
             ></div>
           </div>
           <div class="text-xs text-neutral-300">
-            Last Sync: {integrationStatus().ewallet.lastSync}
+            {t("lastSync")}: {integrationStatus().ewallet.lastSync}
           </div>
         </div>
 
@@ -1265,9 +1278,9 @@ const PaymentIntegration: Component = () => {
                 </svg>
               </div>
               <div>
-                <div class="font-semibold theme-text-primary">Online Gateway</div>
+                <div class="font-semibold theme-text-primary">{t("onlineGateway")}</div>
                 <div class="text-sm theme-text-secondary">
-                  Midtrans, Xendit, PayPal
+                  {t("midtransXenditPaypal")}
                 </div>
               </div>
             </div>
@@ -1280,7 +1293,7 @@ const PaymentIntegration: Component = () => {
             ></div>
           </div>
           <div class="text-xs text-neutral-200">
-            Last Sync: {integrationStatus().onlineGateway.lastSync}
+            {t("lastSync")}: {integrationStatus().onlineGateway.lastSync}
           </div>
         </div>
       </div>
@@ -1309,12 +1322,9 @@ const PaymentIntegration: Component = () => {
               stroke-linejoin="round"
             />
           </svg>
-          <div class="font-semibold text-blue-800">Auto-Update Feature</div>
+          <div class="font-semibold text-blue-800">{t("autoUpdateFeature")}</div>
         </div>
-        <div class="text-sm text-blue-700">
-          Sistem akan otomatis memperbarui status pembayaran ketika transaksi
-          berhasil melalui payment gateway yang terintegrasi.
-        </div>
+        <div class="text-sm text-blue-700">{t("autoUpdateDesc")}</div>
       </div>
     </Card>
   );

@@ -140,7 +140,7 @@ const PreferencesSection: Component = () => {
         {/* Language Selection */}
         <div>
           <label class="block text-sm font-medium theme-text-primary mb-3">
-            Language / Bahasa
+            {t('language')}
           </label>
           <div class="grid grid-cols-2 gap-3">
             <button
@@ -151,17 +151,17 @@ const PreferencesSection: Component = () => {
                   : "theme-border theme-card theme-text-primary hover:theme-border"
               }`}
             >
-              <div class="w-6 h-4 bg-red-500 relative overflow-hidden rounded">
+        <div class="w-6 h-4 bg-red-500 relative overflow-hidden rounded">
                 <div
                   class="absolute inset-0 bg-blue-500"
                   style="clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%)"
                 ></div>
                 <div
-                  class="absolute inset-0 bg-white"
+          class="absolute inset-0 bg-white keep-white"
                   style="clip-path: polygon(30% 0, 70% 0, 50% 40%, 30% 40%)"
                 ></div>
               </div>
-              <span class="font-medium">English</span>
+              <span class="font-medium">{t('english')}</span>
             </button>
             <button
               onClick={() => setLanguage("id")}
@@ -172,9 +172,9 @@ const PreferencesSection: Component = () => {
               }`}
             >
               <div class="w-6 h-4 bg-red-500 relative overflow-hidden rounded">
-                <div class="absolute bottom-0 inset-x-0 h-1/2 bg-white"></div>
+                <div class="absolute bottom-0 inset-x-0 h-1/2 bg-white keep-white"></div>
               </div>
-              <span class="font-medium">Indonesian</span>
+              <span class="font-medium">{t('bahasa')}</span>
             </button>
           </div>
         </div>
@@ -182,7 +182,7 @@ const PreferencesSection: Component = () => {
         {/* Theme Selection */}
         <div>
           <label class="block text-sm font-medium theme-text-primary mb-3">
-            Theme / Tema
+            {t('theme')}
           </label>
           <div class="grid grid-cols-2 gap-3">
             <button
@@ -269,11 +269,9 @@ const PreferencesSection: Component = () => {
                     />
                   </svg>
                 </div>
-                <span class="font-medium theme-text-primary">Light Mode</span>
+                <span class="font-medium theme-text-primary">{t('lightMode')}</span>
               </div>
-              <p class="text-xs theme-text-secondary text-left">
-                Bright and clean interface
-              </p>
+              <p class="text-xs theme-text-secondary text-left">{t('lightModeDesc')}</p>
             </button>
             <button
               onClick={() => setTheme("dark")}
@@ -298,9 +296,9 @@ const PreferencesSection: Component = () => {
                     />
                   </svg>
                 </div>
-                <span class="font-medium theme-text-primary">Dark Mode</span>
+                <span class="font-medium theme-text-primary">{t('darkMode')}</span>
               </div>
-              <p class="text-xs theme-text-secondary text-left">Easy on the eyes</p>
+              <p class="text-xs theme-text-secondary text-left">{t('darkModeDesc')}</p>
             </button>
           </div>
           
@@ -318,23 +316,23 @@ const PreferencesSection: Component = () => {
         {/* Notification Settings */}
         <div>
           <label class="block text-sm font-medium theme-text-primary mb-3">
-            Notifications / Notifikasi
+            {t('notifications')}
           </label>
           <div class="space-y-3 theme-card p-4 rounded-xl border theme-border">
             <ToggleSwitch
               checked={settings().notifications.email}
               onChange={(checked) => updateNotifications({ email: checked })}
-              label="Email Notifications"
+              label={t('emailNotifications')}
             />
             <ToggleSwitch
               checked={settings().notifications.sms}
               onChange={(checked) => updateNotifications({ sms: checked })}
-              label="SMS Notifications"
+              label={t('smsNotifications')}
             />
             <ToggleSwitch
               checked={settings().notifications.push}
               onChange={(checked) => updateNotifications({ push: checked })}
-              label="Push Notifications"
+              label={t('pushNotifications')}
             />
           </div>
         </div>
@@ -342,17 +340,17 @@ const PreferencesSection: Component = () => {
         {/* Default Page */}
         <div>
           <label class="block text-sm font-medium theme-text-primary mb-3">
-            Default Page After Login
+            {t('defaultPageAfterLogin')}
           </label>
           <select
             value={settings().defaultPage}
             onChange={(e) => setDefaultPage(e.target.value as any)}
             class="w-full p-3 border theme-border rounded-xl theme-card theme-text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="dashboard">Dashboard</option>
-            <option value="security">Security</option>
-            <option value="finance">Finance</option>
-            <option value="settings">Settings</option>
+            <option value="dashboard">{t('dashboard')}</option>
+            <option value="security">{t('security')}</option>
+            <option value="finance">{t('finance')}</option>
+            <option value="settings">{t('settings')}</option>
           </select>
         </div>
 
@@ -417,7 +415,7 @@ const PreferencesSection: Component = () => {
                 stroke-width="2"
               />
             </svg>
-            Reset to Default
+            {t('resetSettings')}
           </button>
         </div>
       </div>
@@ -538,8 +536,8 @@ const SecuritySection: Component = () => {
           </svg>
         </div>
         <div>
-          <h2 class="text-xl font-bold theme-text-primary">Security</h2>
-          <p class="text-sm theme-text-secondary">Protect your account</p>
+          <h2 class="text-xl font-bold theme-text-primary">{t('securitySettings')}</h2>
+          <p class="text-sm theme-text-secondary">{t('protectYourAccount')}</p>
         </div>
       </div>
 
@@ -549,16 +547,12 @@ const SecuritySection: Component = () => {
           <ToggleSwitch
             checked={twoFactorEnabled()}
             onChange={toggle2FA}
-            label="Two-Factor Authentication (2FA)"
+            label={t('twoFactorAuth')}
           />
-          <p class="text-xs theme-text-secondary mt-2">
-            Add an extra layer of security to your account
-          </p>
+          <p class="text-xs theme-text-secondary mt-2">{t('twoFactorDescription')}</p>
           {twoFactorEnabled() && (
             <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p class="text-sm text-green-700">
-                ✓ 2FA is enabled and protecting your account
-              </p>
+              <p class="text-sm text-green-700">✓ {t('twoFactorEnabledNotice')}</p>
             </div>
           )}
         </div>
@@ -593,9 +587,7 @@ const SecuritySection: Component = () => {
                 stroke-width="2"
               />
             </svg>
-            {showChangePassword()
-              ? "Cancel Password Change"
-              : "Change Password"}
+            {showChangePassword() ? t('cancelPasswordChange') : t('changePassword')}
           </button>
 
           {showChangePassword() && (
@@ -605,7 +597,7 @@ const SecuritySection: Component = () => {
             >
               <div>
                 <label class="block text-sm font-medium theme-text-primary mb-2">
-                  Current Password
+                  {t('currentPassword')}
                 </label>
                 <input
                   type="password"
@@ -622,7 +614,7 @@ const SecuritySection: Component = () => {
               </div>
               <div>
                 <label class="block text-sm font-medium theme-text-primary mb-2">
-                  New Password
+                  {t('newPassword')}
                 </label>
                 <input
                   type="password"
@@ -640,7 +632,7 @@ const SecuritySection: Component = () => {
               </div>
               <div>
                 <label class="block text-sm font-medium theme-text-primary mb-2">
-                  Confirm New Password
+                  {t('confirmPassword')}
                 </label>
                 <input
                   type="password"
@@ -660,7 +652,7 @@ const SecuritySection: Component = () => {
                 type="submit"
                 class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
               >
-                Update Password
+                {t('updatePassword')}
               </button>
             </form>
           )}
@@ -670,7 +662,7 @@ const SecuritySection: Component = () => {
         <div>
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold theme-text-primary">
-              Active Sessions
+              {t('activeSessions')}
             </h3>
             <button
               onClick={logoutAllOtherSessions}
@@ -721,12 +713,12 @@ const SecuritySection: Component = () => {
                         {session.device}
                         {session.current && (
                           <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                            Current
+                            {t('current')}
                           </span>
                         )}
                       </div>
                       <div class="text-sm theme-text-secondary">
-                        {session.location} • Last active: {session.lastActive}
+                        {session.location} • {t('lastActive')}: {session.lastActive}
                       </div>
                     </div>
                   </div>
@@ -735,7 +727,7 @@ const SecuritySection: Component = () => {
                       onClick={() => logoutSession(session.id)}
                       class="text-red-600 hover:text-red-700 text-sm font-medium"
                     >
-                      Logout
+                      {t('signOut')}
                     </button>
                   )}
                 </div>

@@ -2,6 +2,7 @@ import { Component, createSignal, For, Show, createEffect } from "solid-js";
 import Layout from "../layouts/Layout";
 import { useSettings } from "../contexts/SettingsContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import { getStoredUser, setStoredUser } from "../utils/auth";
 
 // Enhanced Card Component
 const Card: Component<{ children: any; class?: string }> = (props) => {
@@ -29,14 +30,16 @@ const Card: Component<{ children: any; class?: string }> = (props) => {
 const UserInformationSection: Component = () => {
   const { t } = useLanguage();
   const [isEditing, setIsEditing] = createSignal(false);
+  const u = getStoredUser();
   const [userInfo, setUserInfo] = createSignal({
-    name: "Ahmad Wijaya",
-    email: "ahmad.wijaya@akusara.com",
-    phone: "+62 812-3456-7890",
-    role: "Admin",
+    name: u?.name || "User",
+    email: u?.email || u?.username || "user@localhost",
+    // Default phone empty if not set
+    phone: (u as any)?.phone || "",
+    role: u?.role || "User",
     joinDate: "15 January 2023",
     lastLogin: "Today, 14:30 WIB",
-    avatar: "/api/placeholder/120/120",
+  avatar: (u as any)?.avatar || "/api/placeholder/120/120",
   });
 
   const [editForm, setEditForm] = createSignal({
@@ -47,6 +50,13 @@ const UserInformationSection: Component = () => {
 
   const handleSaveProfile = () => {
     setUserInfo({ ...userInfo(), ...editForm() });
+    // Persist changes back to localStorage user (merge)
+    try {
+      const raw = localStorage.getItem('user');
+      const current = raw ? JSON.parse(raw) : {};
+      const updated = { ...current, name: editForm().name, email: editForm().email, phone: editForm().phone };
+      setStoredUser(updated);
+    } catch {}
     setIsEditing(false);
     console.log("Profile updated:", editForm());
   };
@@ -61,7 +71,15 @@ const UserInformationSection: Component = () => {
         const reader = new FileReader();
         reader.onload = (event) => {
           const result = event.target?.result as string;
+          // Update UI
           setUserInfo({ ...userInfo(), avatar: result });
+          // Persist to localStorage user
+          try {
+            const raw = localStorage.getItem('user');
+            const current = raw ? JSON.parse(raw) : {};
+            const updated = { ...current, avatar: result };
+            setStoredUser(updated);
+          } catch {}
           console.log("Avatar uploaded successfully");
         };
         reader.readAsDataURL(file);
@@ -131,7 +149,7 @@ const UserInformationSection: Component = () => {
                   {userInfo().role}
                 </span>
                 <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span class="text-sm text-green-600 font-medium">Online</span>
+                <span class="text-sm text-green-600 font-medium">{t('onlineStatusLabel')}</span>
               </div>
             </div>
             <button
@@ -158,7 +176,7 @@ const UserInformationSection: Component = () => {
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-neutral-700 mb-2">
-                  Full Name
+                  {t('fullName')}
                 </label>
                 <input
                   type="text"
@@ -171,7 +189,7 @@ const UserInformationSection: Component = () => {
               </div>
               <div>
                 <label class="block text-sm font-medium text-neutral-700 mb-2">
-                  Email
+                  {t('email')}
                 </label>
                 <input
                   type="email"
@@ -184,7 +202,7 @@ const UserInformationSection: Component = () => {
               </div>
               <div>
                 <label class="block text-sm font-medium text-neutral-700 mb-2">
-                  Phone Number
+                  {t('phoneNumber')}
                 </label>
                 <input
                   type="tel"
@@ -206,7 +224,7 @@ const UserInformationSection: Component = () => {
                   onClick={() => setIsEditing(false)}
                   class="bg-neutral-300 text-neutral-700 px-6 py-2 rounded-xl font-medium hover:bg-neutral-400 transition-colors"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
               </div>
             </div>
@@ -235,7 +253,7 @@ const UserInformationSection: Component = () => {
                     />
                   </svg>
                   <div>
-                    <p class="text-sm text-neutral-600">Email</p>
+                    <p class="text-sm text-neutral-600">{t('email')}</p>
                     <p class="font-medium text-neutral-900">
                       {userInfo().email}
                     </p>
@@ -256,7 +274,7 @@ const UserInformationSection: Component = () => {
                     />
                   </svg>
                   <div>
-                    <p class="text-sm text-neutral-600">Phone</p>
+                    <p class="text-sm text-neutral-600">{t('phoneNumber')}</p>
                     <p class="font-medium text-neutral-900">
                       {userInfo().phone}
                     </p>
@@ -308,7 +326,7 @@ const UserInformationSection: Component = () => {
                     />
                   </svg>
                   <div>
-                    <p class="text-sm text-neutral-600">Join Date</p>
+                    <p class="text-sm text-neutral-600">{t('joinDate')}</p>
                     <p class="font-medium text-neutral-900">
                       {userInfo().joinDate}
                     </p>
@@ -353,6 +371,7 @@ const UserInformationSection: Component = () => {
 
 // Activity Summary Section
 const ActivitySummarySection: Component = () => {
+  const { t } = useLanguage();
   const [activityData] = createSignal({
     tasksCompleted: 45,
     tasksPending: 8,
@@ -540,8 +559,8 @@ const ActivitySummarySection: Component = () => {
           </svg>
         </div>
         <div>
-          <h2 class="text-xl font-bold text-neutral-900">Activity Summary</h2>
-          <p class="text-sm text-neutral-600">Your performance overview</p>
+          <h2 class="text-xl font-bold text-neutral-900">{t('activitySummary')}</h2>
+          <p class="text-sm text-neutral-600">{t('performanceOverview')}</p>
         </div>
       </div>
 
@@ -553,7 +572,7 @@ const ActivitySummarySection: Component = () => {
               <p class="text-2xl font-bold text-green-700">
                 {activityData().tasksCompleted}
               </p>
-              <p class="text-sm text-green-600">Tasks Completed</p>
+              <p class="text-sm text-green-600">{t('tasksCompletedLabel')}</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
               <svg
@@ -579,7 +598,7 @@ const ActivitySummarySection: Component = () => {
               <p class="text-2xl font-bold text-orange-700">
                 {activityData().tasksPending}
               </p>
-              <p class="text-sm text-orange-600">Tasks Pending</p>
+              <p class="text-sm text-orange-600">{t('tasksPending')}</p>
             </div>
             <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
               <svg
@@ -612,7 +631,7 @@ const ActivitySummarySection: Component = () => {
               <p class="text-2xl font-bold text-blue-700">
                 {activityData().reportsSubmitted}
               </p>
-              <p class="text-sm text-blue-600">Reports Submitted</p>
+              <p class="text-sm text-blue-600">{t('reportsSubmitted')}</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
               <svg
@@ -641,10 +660,10 @@ const ActivitySummarySection: Component = () => {
       {/* Monthly Progress */}
       <div class="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-xl border border-purple-100 mb-6">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="font-semibold text-purple-900">Monthly Progress</h3>
+          <h3 class="font-semibold text-purple-900">{t('monthlyProgressLabel')}</h3>
           <span class="text-sm text-purple-600">
             {activityData().monthlyProgress} / {activityData().monthlyTarget}{" "}
-            tasks
+            {t('tasks')}
           </span>
         </div>
         <div class="w-full bg-purple-200 rounded-full h-3 mb-2">
@@ -653,19 +672,17 @@ const ActivitySummarySection: Component = () => {
             style={`width: ${progressPercentage()}%`}
           ></div>
         </div>
-        <p class="text-xs text-purple-600">
-          {progressPercentage().toFixed(1)}% of monthly target completed
-        </p>
+  <p class="text-xs text-purple-600">{progressPercentage().toFixed(1)}% {t('ofMonthlyTargetCompleted')}</p>
       </div>
 
       {/* Recent Activities Timeline */}
       <div>
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-neutral-900">
-            Recent Activities
+            {t('recentActivities')}
           </h3>
           <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-            View All
+            {t('viewAll')}
           </button>
         </div>
         <div class="space-y-3 max-h-64 overflow-y-auto">
@@ -809,8 +826,8 @@ const AccountSecuritySection: Component = () => {
           </svg>
         </div>
         <div>
-          <h2 class="text-xl font-bold text-neutral-900">Account Security</h2>
-          <p class="text-sm text-neutral-600">Protect your account and data</p>
+          <h2 class="text-xl font-bold text-neutral-900">{t('accountSecurity')}</h2>
+          <p class="text-sm text-neutral-600">{t('protectYourAccount')}</p>
         </div>
       </div>
 
@@ -835,9 +852,9 @@ const AccountSecuritySection: Component = () => {
                 </svg>
               </div>
               <div>
-                <h3 class="font-semibold text-green-800">Security Score</h3>
+                <h3 class="font-semibold text-green-800">{t('securityScoreLabel')}</h3>
                 <p class="text-2xl font-bold text-green-700">95%</p>
-                <p class="text-xs text-green-600">Excellent security level</p>
+                <p class="text-xs text-green-600">{t('excellentSecurityLevel')}</p>
               </div>
             </div>
           </div>
@@ -860,11 +877,11 @@ const AccountSecuritySection: Component = () => {
                 </svg>
               </div>
               <div>
-                <h3 class="font-semibold text-blue-800">Active Sessions</h3>
+                <h3 class="font-semibold text-blue-800">{t('activeSessions')}</h3>
                 <p class="text-2xl font-bold text-blue-700">
                   {activeSessions().length}
                 </p>
-                <p class="text-xs text-blue-600">Devices connected</p>
+                <p class="text-xs text-blue-600">{t('devicesConnected')}</p>
               </div>
             </div>
           </div>
@@ -901,13 +918,9 @@ const AccountSecuritySection: Component = () => {
                 </svg>
               </div>
               <div>
-                <h3 class="font-semibold text-neutral-900">
-                  Two-Factor Authentication
-                </h3>
+                <h3 class="font-semibold text-neutral-900">{t('twoFactorAuth')}</h3>
                 <p class="text-sm text-neutral-600">
-                  {twoFactorEnabled()
-                    ? "Enhanced security is enabled"
-                    : "Add an extra layer of security"}
+                  {twoFactorEnabled() ? t('twoFactorEnabledNotice') : t('twoFactorDescription')}
                 </p>
               </div>
             </div>
@@ -926,9 +939,7 @@ const AccountSecuritySection: Component = () => {
           </div>
           {twoFactorEnabled() && (
             <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p class="text-sm text-green-700">
-                ✓ 2FA is enabled and protecting your account
-              </p>
+              <p class="text-sm text-green-700">✓ {t('twoFactorEnabledNotice')}</p>
             </div>
           )}
         </div>
@@ -963,9 +974,7 @@ const AccountSecuritySection: Component = () => {
                 stroke-width="2"
               />
             </svg>
-            {showChangePassword()
-              ? "Cancel Password Change"
-              : "Change Password"}
+            {showChangePassword() ? t('cancelPasswordChange') : t('changePassword')}
           </button>
 
           <Show when={showChangePassword()}>
@@ -975,7 +984,7 @@ const AccountSecuritySection: Component = () => {
             >
               <div>
                 <label class="block text-sm font-medium text-neutral-700 mb-2">
-                  Current Password
+                  {t('currentPassword')}
                 </label>
                 <input
                   type="password"
@@ -992,7 +1001,7 @@ const AccountSecuritySection: Component = () => {
               </div>
               <div>
                 <label class="block text-sm font-medium text-neutral-700 mb-2">
-                  New Password
+                  {t('newPassword')}
                 </label>
                 <input
                   type="password"
@@ -1010,7 +1019,7 @@ const AccountSecuritySection: Component = () => {
               </div>
               <div>
                 <label class="block text-sm font-medium text-neutral-700 mb-2">
-                  Confirm New Password
+                  {t('confirmPassword')}
                 </label>
                 <input
                   type="password"
@@ -1030,7 +1039,7 @@ const AccountSecuritySection: Component = () => {
                 type="submit"
                 class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
               >
-                Update Password
+                {t('updatePassword')}
               </button>
             </form>
           </Show>
@@ -1040,7 +1049,7 @@ const AccountSecuritySection: Component = () => {
         <div>
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-neutral-900">
-              Active Sessions
+              {t('activeSessions')}
             </h3>
             <button
               onClick={logoutAllOtherSessions}
@@ -1091,16 +1100,12 @@ const AccountSecuritySection: Component = () => {
                         {session.device}
                         {session.current && (
                           <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                            Current Session
+                            {t('currentSession')}
                           </span>
                         )}
                       </div>
-                      <div class="text-sm text-neutral-600">
-                        {session.browser} • {session.location}
-                      </div>
-                      <div class="text-xs text-neutral-500">
-                        {session.lastActive} • IP: {session.ip}
-                      </div>
+                      <div class="text-sm text-neutral-600">{session.browser} • {session.location}</div>
+                      <div class="text-xs text-neutral-500">{session.lastActive} • IP: {session.ip}</div>
                     </div>
                   </div>
                   {!session.current && (
@@ -1108,7 +1113,7 @@ const AccountSecuritySection: Component = () => {
                       onClick={() => logoutSession(session.id)}
                       class="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition-colors"
                     >
-                      Logout
+                      {t('signOut')}
                     </button>
                   )}
                 </div>

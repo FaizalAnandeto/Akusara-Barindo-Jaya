@@ -57,7 +57,7 @@ const NavigationItem = (props) => {
 
       {/* Tooltip for collapsed state */}
       {!props.isOpen && (
-        <div class="absolute left-16 bg-gray-800 text-white px-3 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 whitespace-nowrap border border-gray-700">
+        <div class="absolute left-16 bg-gray-800 text-white px-3 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-auto z-50 whitespace-nowrap border border-gray-700">
           <div class="font-medium text-sm">{props.title}</div>
           <div class="text-xs text-gray-400 mt-0.5">{props.subtitle}</div>
           {/* Arrow */}

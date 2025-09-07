@@ -169,13 +169,12 @@ const AdvancedCameraSystem = () => {
                   <path d="M1 7h15" stroke="white" stroke-width="1" />
                 </svg>
               </div>
-              Advanced Camera Monitoring System
+              {t('advancedCameraMonitoringSystem')}
             </div>
             <div class="text-sm theme-text-secondary">
               {detectedPersons()} {t('activeDetections')} •{" "}
               {cameras().filter((c) => c.status === "recording").length}/
-              {cameras().length} Cameras Online • {totalRecordingHours()}h Total
-              Recording
+              {cameras().length} {t('camerasOnline')} • {totalRecordingHours()}h {t('totalRecordingHours')}
             </div>
           </div>
           <StatusBadge status="recording" />
@@ -193,7 +192,7 @@ const AdvancedCameraSystem = () => {
                 <div class="w-3 h-3 bg-white rounded-full animate-pulse shadow-lg"></div>
               </div>
               {/* Text */}
-              <span class="font-semibold tracking-wide">LIVE REC</span>
+              <span class="font-semibold tracking-wide">{t('liveRec')}</span>
               {/* Signal bars animation */}
               <div class="flex items-end gap-0.5">
                 <div
@@ -237,7 +236,7 @@ const AdvancedCameraSystem = () => {
                       fill="currentColor"
                     />
                   </svg>
-                  Night Vision
+                  {t('nightVision')}
                 </span>
               </Show>
             </div>
@@ -346,30 +345,30 @@ const AdvancedCameraSystem = () => {
         <Show when={getCurrentCamera()}>
           <div class="bg-white dark:bg-slate-700 rounded-xl p-4 border border-gray-200 dark:border-slate-600">
             <div class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
-              Camera Technical Specifications
+              {t('cameraTechnicalSpecifications')}
             </div>
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <div class="text-xs text-gray-500 dark:text-slate-400">Resolution & FPS</div>
+                <div class="text-xs text-gray-500 dark:text-slate-400">{t('resolutionFPS')}</div>
                 <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                   {getCurrentCamera()?.resolution} @ {getCurrentCamera()?.fps}
                   fps
                 </div>
               </div>
               <div>
-                <div class="text-xs text-gray-500 dark:text-slate-400">Zoom Capability</div>
+                <div class="text-xs text-gray-500 dark:text-slate-400">{t('zoomCapability')}</div>
                 <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                   {getCurrentCamera()?.zoom}
                 </div>
               </div>
               <div>
-                <div class="text-xs text-gray-500 dark:text-slate-400">Storage Type</div>
+                <div class="text-xs text-gray-500 dark:text-slate-400">{t('storageType')}</div>
                 <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                   {getCurrentCamera()?.storage}
                 </div>
               </div>
               <div>
-                <div class="text-xs text-gray-500 dark:text-slate-400">Last Maintenance</div>
+                <div class="text-xs text-gray-500 dark:text-slate-400">{t('lastMaintenance')}</div>
                 <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
                   {getCurrentCamera()?.lastMaintenance}
                 </div>
@@ -385,7 +384,7 @@ const AdvancedCameraSystem = () => {
                       : "bg-gray-300 dark:bg-gray-600"
                   }`}
                 ></span>
-                <span class="text-xs text-gray-600 dark:text-slate-400">Night Vision</span>
+                <span class="text-xs text-gray-600 dark:text-slate-400">{t('nightVision')}</span>
               </div>
               <div class="flex items-center gap-2">
                 <span
@@ -395,7 +394,7 @@ const AdvancedCameraSystem = () => {
                       : "bg-gray-300 dark:bg-gray-600"
                   }`}
                 ></span>
-                <span class="text-xs text-gray-600 dark:text-slate-400">Motion Detection</span>
+                <span class="text-xs text-gray-600 dark:text-slate-400">{t('motionDetection')}</span>
               </div>
               <div class="flex items-center gap-2">
                 <span
@@ -405,7 +404,7 @@ const AdvancedCameraSystem = () => {
                       : "bg-gray-300 dark:bg-gray-600"
                   }`}
                 ></span>
-                <span class="text-xs text-gray-600 dark:text-slate-400">Audio Recording</span>
+                <span class="text-xs text-gray-600 dark:text-slate-400">{t('audioRecording')}</span>
               </div>
             </div>
           </div>
@@ -449,7 +448,7 @@ const AdvancedCameraSystem = () => {
                 fill="currentColor"
               />
             </svg>
-            Settings
+            {t('settings')}
           </button>
         </div>
       </Card>
@@ -578,10 +577,10 @@ const SuspiciousActivityDetection = () => {
               <circle cx="12" cy="17" r="1" fill="white" />
             </svg>
           </div>
-          Advanced Suspicious Activity Detection
+          {t('advancedSuspiciousActivityDetection')}
         </div>
         <div class="text-sm text-gray-600 dark:text-slate-400">
-          AI-powered real-time threat analysis and behavior monitoring
+          {t('aiPoweredRealTimeThreatAnalysis')}
         </div>
       </div>
 
@@ -609,13 +608,13 @@ const SuspiciousActivityDetection = () => {
           <div class="text-lg font-bold text-amber-700">
             {alertStats().investigating}
           </div>
-          <div class="text-xs text-amber-600">Investigating</div>
+          <div class="text-xs text-amber-600">{t('investigating')}</div>
         </div>
         <div class="text-center p-3 bg-gray-50 rounded-lg">
           <div class="text-lg font-bold text-gray-700">
             {alertStats().falsePositives}
           </div>
-          <div class="text-xs text-gray-600">False Positive</div>
+          <div class="text-xs text-gray-600">{t('falsePositive')}</div>
         </div>
       </div>
 
@@ -717,7 +716,7 @@ const SuspiciousActivityDetection = () => {
                   </div>
 
                   <div class="text-sm text-gray-800 dark:text-slate-300 mb-2">
-                    <strong>AI Analysis:</strong> {activity.aiAnalysis}
+                    <strong>{t('aiAnalysisLabel')}:</strong> {activity.aiAnalysis}
                   </div>
 
                   <div class="flex items-center gap-4 text-xs text-gray-600 dark:text-slate-400 mb-3">
@@ -789,7 +788,7 @@ const SuspiciousActivityDetection = () => {
                           stroke-linejoin="round"
                         />
                       </svg>
-                      Confidence: {activity.confidence}%
+                      {t('confidence')}: {activity.confidence}%
                     </span>
                     <div class="flex items-center gap-1">
                       <div
@@ -805,7 +804,20 @@ const SuspiciousActivityDetection = () => {
                     <For each={activity.actions}>
                       {(action) => (
                         <button class="px-3 py-1 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg text-xs font-medium hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors">
-                          {action}
+                          {(() => {
+                            switch(action){
+                              case 'Alert Security': return t('alertSecurity');
+                              case 'Lock Down Area': return t('lockDownArea');
+                              case 'Record Evidence': return t('recordEvidence');
+                              case 'Monitor Closely': return t('monitorClosely');
+                              case 'Send Warning': return t('sendWarning');
+                              case 'Review Footage': return t('reviewFootage');
+                              case 'Alert Personnel': return t('alertPersonnel');
+                              case 'Immediate Investigation': return t('immediateInvestigation');
+                              case 'Security Response': return t('securityResponse');
+                              default: return action;
+                            }
+                          })()}
                         </button>
                       )}
                     </For>
@@ -831,7 +843,7 @@ const SuspiciousActivityDetection = () => {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-white">
             <path d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          Emergency Response Protocol
+          {t('emergencyResponseProtocol')}
         </button>
         <button class="bg-gradient-to-r from-purple-600 to-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center gap-2">
           <svg
@@ -847,7 +859,7 @@ const SuspiciousActivityDetection = () => {
               fill="currentColor"
             />
           </svg>
-          AI Settings
+          {t('aiSettings')}
         </button>
       </div>
     </Card>
@@ -949,10 +961,10 @@ const FaceRecognitionSystem = () => {
               />
             </svg>
           </div>
-          Face Recognition & Access Control
+          {t('faceRecognitionAccessControl')}
         </div>
         <div class="text-sm text-gray-600 dark:text-slate-400">
-          AI-powered facial recognition and access management system
+          {t('aiPoweredFacialRecognition')}
         </div>
       </div>
 
@@ -962,7 +974,7 @@ const FaceRecognitionSystem = () => {
           <div class="text-2xl font-bold text-blue-700">
             {recognitionStats().totalFaces}
           </div>
-          <div class="text-xs text-blue-600">Total Faces Registered</div>
+          <div class="text-xs text-blue-600">{t('totalFacesRegistered')}</div>
         </div>
         <div class="bg-emerald-50 rounded-xl p-4 text-center">
           <div class="text-2xl font-bold text-emerald-700">
@@ -990,27 +1002,27 @@ const FaceRecognitionSystem = () => {
           <div class="text-lg font-bold text-amber-700">
             {recognitionStats().visitors}
           </div>
-          <div class="text-xs text-amber-600">Current Visitors</div>
+          <div class="text-xs text-amber-600">{t('currentVisitors')}</div>
         </div>
         <div class="bg-red-50 rounded-lg p-3 text-center">
           <div class="text-lg font-bold text-red-700">
             {recognitionStats().unknownFaces}
           </div>
-          <div class="text-xs text-red-600">Unknown Faces</div>
+          <div class="text-xs text-red-600">{t('unknownFaces')}</div>
         </div>
       </div>
 
       {/* Recent Recognition Events */}
       <div class="space-y-3 mb-6">
         <div class="text-sm font-semibold text-gray-800 dark:text-gray-200">
-          Recent Recognition Events
+          {t('recentRecognitionEvents')}
         </div>
         <div class="max-h-64 overflow-y-auto space-y-2">
           <For each={recentRecognitions()}>
             {(recognition) => (
               <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-neutral-200 hover:shadow-md transition-shadow">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-neutral-300 rounded-full flex items-center justify-center">
+                  <div class="w-10 h-10 bg-neutral-300 dark:bg-slate-600 rounded-full flex items-center justify-center">
                     <svg
                       width="16"
                       height="16"
@@ -1085,7 +1097,7 @@ const FaceRecognitionSystem = () => {
             stroke-linecap="round"
           />
         </svg>
-        Manage Face Recognition Database
+  {t('manageFaceRecognitionDatabase')}
       </button>
     </Card>
   );
@@ -1183,7 +1195,7 @@ const SystemSecurityStatus = () => {
       {/* System Components Status */}
       <div class="space-y-2 mb-6">
         <div class="text-sm font-semibold text-gray-800 dark:text-gray-200">
-          System Components
+          {t('systemComponents')}
         </div>
         <div class="max-h-64 overflow-y-auto space-y-2">
           <For each={systemStatus()}>
@@ -1234,7 +1246,7 @@ const SystemSecurityStatus = () => {
               stroke-linejoin="round"
             />
           </svg>
-          Security Scan
+          {t('securityScan')}
         </button>
         <button class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-3 rounded-lg font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg text-sm flex items-center justify-center gap-2">
           <svg
@@ -1268,7 +1280,7 @@ const SystemSecurityStatus = () => {
               fill="currentColor"
             />
           </svg>
-          Detailed Report
+          {t('detailedReport')}
         </button>
       </div>
     </Card>

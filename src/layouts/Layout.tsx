@@ -5,12 +5,25 @@ import { Navbar } from "../components";
 import { useSettings } from "../contexts/SettingsContext";
 
 const Layout = (props) => {
-  const [sidebarOpen, setSidebarOpen] = createSignal(true);
+  const initialSidebar = (() => {
+    try {
+      const v = localStorage.getItem('sidebar-open');
+      if (v === null) return true; // default open first time
+      return v === '1';
+    } catch {
+      return true;
+    }
+  })();
+  const [sidebarOpen, setSidebarOpen] = createSignal(initialSidebar);
   const location = useLocation();
   const { settings } = useSettings();
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen());
+    setSidebarOpen((v) => {
+      const next = !v;
+      try { localStorage.setItem('sidebar-open', next ? '1' : '0'); } catch {}
+      return next;
+    });
   };
 
   const getActiveSection = () => {

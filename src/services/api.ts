@@ -41,3 +41,32 @@ export const loginUser = async (credentials: LoginRequest): Promise<LoginRespons
     throw new Error('Network error occurred');
   }
 };
+
+// Notifications API types
+export interface Notification {
+  id: number;
+  title: string;
+  description: string;
+  created_at: string;
+  read: boolean;
+}
+
+export const fetchNotifications = async (): Promise<Notification[]> => {
+  const res = await fetch(`${API_BASE_URL}/notifications`);
+  if (!res.ok) throw new Error('Failed to load notifications');
+  return res.json();
+};
+
+export const markNotificationRead = async (id: number): Promise<void> => {
+  const res = await fetch(`${API_BASE_URL}/notifications/read`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id }),
+  });
+  if (!res.ok) throw new Error('Failed to mark as read');
+};
+
+export const clearAllNotifications = async (): Promise<void> => {
+  const res = await fetch(`${API_BASE_URL}/notifications/clear`, { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to clear notifications');
+};
