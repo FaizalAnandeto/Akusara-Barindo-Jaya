@@ -70,3 +70,14 @@ export const clearAllNotifications = async (): Promise<void> => {
   const res = await fetch(`${API_BASE_URL}/notifications/clear`, { method: 'POST' });
   if (!res.ok) throw new Error('Failed to clear notifications');
 };
+
+// Feedback API
+export interface FeedbackItem {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  created_at: string;
+}
+
+// Feedback endpoints removed

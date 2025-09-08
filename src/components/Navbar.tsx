@@ -63,6 +63,7 @@ const Navbar = () => {
   let searchWrapRef: HTMLDivElement | undefined;
   let searchInputRef: HTMLInputElement | undefined;
   let searchMenuRef: HTMLDivElement | undefined;
+  
 
   onMount(() => {
     // Update user state on mount and when storage changes
@@ -141,6 +142,7 @@ const Navbar = () => {
   };
 
   return (
+  <>
   <nav class="sticky top-0 z-50 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-sm">
   {/* Left accent bar - switch to blue to avoid red tones */}
   <div class="absolute left-0 top-0 h-full w-1" />
@@ -159,7 +161,7 @@ const Navbar = () => {
           {/* Center: pill search */}
           <div class="flex-1 flex justify-center">
             <div ref={searchWrapRef} class="relative w-full max-w-3xl">
-              <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden>
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" />
                 <path d="M20 20l-3.5-3.5" />
               </svg>
@@ -234,7 +236,7 @@ const Navbar = () => {
                           }}
                         >
                           <div class="h-6 w-6 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-gray-200 dark:border-slate-600 flex items-center justify-center">
-                            <svg class="h-3.5 w-3.5 text-blue-600" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                            <svg class="h-3.5 w-3.5 text-blue-600" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                               <path d="M12 3l7 6v12h-5v-7H10v7H5V9l7-6z" />
                             </svg>
                           </div>
@@ -253,8 +255,9 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Right: chips + bell + avatar */}
+          {/* Right: chips + feedback + bell + avatar */}
           <div class="flex items-center gap-2">
+            
             {/* Theme toggle */}
             <button
               class="h-10 w-10 rounded-full border border-gray-200 dark:border-slate-600 flex items-center justify-center text-gray-600 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700/80 active:scale-95 transition duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30"
@@ -352,7 +355,7 @@ const Navbar = () => {
             {/* Date chip */}
             <div class="hidden md:flex items-center gap-2 rounded-full border border-gray-200 dark:border-slate-600 px-3.5 h-10 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700/60 transition-colors">
               <div class="flex items-center justify-center h-6 w-6 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-gray-200 dark:border-slate-600">
-                <svg class="h-4 w-4 text-blue-600" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <svg class="h-4 w-4 text-blue-600" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1Zm12 8H5v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8Z" />
                 </svg>
               </div>
@@ -362,7 +365,7 @@ const Navbar = () => {
             {/* Time chip */}
             <div class="hidden md:flex items-center gap-2 rounded-full border border-gray-200 dark:border-slate-600 px-3.5 h-10 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700/60 transition-colors">
               <div class="flex items-center justify-center h-6 w-6 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-gray-200 dark:border-slate-600">
-                <svg class="h-4 w-4 text-blue-600" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <svg class="h-4 w-4 text-blue-600" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 5a1 1 0 0 0-2 0v4a1 1 0 0 0 .293.707l3 3a1 1 0 1 0 1.414-1.414L13 9.586Z" />
                 </svg>
               </div>
@@ -381,7 +384,7 @@ const Navbar = () => {
                   setNotifOpen((v) => !v);
                 }}
               >
-        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm8-6-1.7-1.7V11a6.3 6.3 0 0 0-5-6.18V4a1.3 1.3 0 1 0-2.6 0v.82A6.3 6.3 0 0 0 6.3 11v3.3L4.6 16a1 1 0 0 0 .7 1.7h15.4a1 1 0 0 0 .7-1.7Z" />
                 </svg>
                 <Show when={unreadCount() > 0}>
@@ -496,7 +499,7 @@ const Navbar = () => {
                       setProfileOpen(false);
                     }}
                   >
-                    <svg class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <svg class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5Z" />
                     </svg>
                     {t('profile')}
@@ -508,7 +511,7 @@ const Navbar = () => {
                       setProfileOpen(false);
                     }}
                   >
-                    <svg class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <svg class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M12 8a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm-9 4a9 9 0 1 1 9 9 9.01 9.01 0 0 1-9-9Z" />
                     </svg>
                     {t('settings')}
@@ -522,7 +525,7 @@ const Navbar = () => {
                       setProfileOpen(false);
                     }}
                   >
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M16 13v-2H7V7l-5 5 5 5v-4h9Zm5-10H9a2 2 0 0 0-2 2v3h2V5h12v14H9v-3H7v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Z" />
                     </svg>
                     {t('signOut')}
@@ -534,6 +537,8 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
+  
+  </>
   );
 };
 

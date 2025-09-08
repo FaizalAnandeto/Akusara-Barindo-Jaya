@@ -1,7 +1,8 @@
-import { Component, createSignal, For, Show, createEffect } from "solid-js";
+import { Component, createSignal, For, Show, createEffect, onMount } from "solid-js";
 import Layout from "../layouts/Layout";
 import { useSettings } from "../contexts/SettingsContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import { fetchTwoFA, setTwoFA as apiSetTwoFA, setupTwoFA, verifyTwoFA, disableTwoFA, fetchQr } from "../services/twofa";
 
 // Enhanced Card Component
 const Card: Component<{ children: any; class?: string }> = (props) => {
@@ -427,6 +428,10 @@ const PreferencesSection: Component = () => {
 const SecuritySection: Component = () => {
   const { t } = useLanguage();
   const [twoFactorEnabled, setTwoFactorEnabled] = createSignal(false);
+  const [twoFALoading, setTwoFALoading] = createSignal(false);
+  const [twoFAError, setTwoFAError] = createSignal<string | null>(null);
+  const [qrSvg, setQrSvg] = createSignal<string | null>(null);
+  const [otpCode, setOtpCode] = createSignal("");
   const [showChangePassword, setShowChangePassword] = createSignal(false);
   const [passwordForm, setPasswordForm] = createSignal({
     currentPassword: "",
@@ -500,14 +505,63 @@ const SecuritySection: Component = () => {
     });
   };
 
-  const toggle2FA = (enabled: boolean) => {
-    setTwoFactorEnabled(enabled);
-    if (enabled) {
-      console.log("2FA enabled - in real app, show QR code setup");
-      alert("2FA enabled! In a real app, you would scan a QR code.");
-    } else {
-      console.log("2FA disabled");
-      alert("2FA disabled!");
+  // Load initial 2FA state from backend
+  onMount(async () => {
+    setTwoFALoading(true);
+    setTwoFAError(null);
+    try {
+      const s: any = await fetchTwoFA();
+      setTwoFactorEnabled(!!s.enabled);
+      if (s.setupPending) {
+        try {
+          const q = await fetchQr();
+          setQrSvg(q.qr_svg);
+        } catch {}
+      }
+    } catch (e: any) {
+      console.error("Failed to load 2FA state", e);
+      setTwoFAError(t("failedToLoadTwoFA") || "Failed to load 2FA state");
+    } finally {
+      setTwoFALoading(false);
+    }
+  });
+
+  const toggle2FA = async (enabled: boolean) => {
+    setTwoFALoading(true);
+    setTwoFAError(null);
+    try {
+      if (enabled) {
+        const setup = await setupTwoFA();
+        setQrSvg(setup.qr_svg);
+        setTwoFactorEnabled(false);
+      } else {
+        await disableTwoFA();
+        setTwoFactorEnabled(false);
+        setQrSvg(null);
+      }
+    } catch (e: any) {
+      console.error("Failed to update 2FA", e);
+      setTwoFAError(t("failedToUpdateTwoFA") || "Failed to update 2FA");
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
+  const confirm2FA = async () => {
+    setTwoFALoading(true);
+    setTwoFAError(null);
+    try {
+      await verifyTwoFA(otpCode());
+      const s = await fetchTwoFA();
+      setTwoFactorEnabled(!!s.enabled);
+      setQrSvg(null);
+      setOtpCode("");
+      alert("2FA verified and enabled");
+    } catch (e: any) {
+      const msg = e?.message === 'invalid_code' ? 'Kode 2FA salah' : e?.message === 'setup_required' ? 'Silakan scan QR terlebih dahulu' : 'Gagal verifikasi 2FA';
+      setTwoFAError(msg);
+    } finally {
+      setTwoFALoading(false);
     }
   };
 
@@ -544,12 +598,46 @@ const SecuritySection: Component = () => {
       <div class="space-y-6">
         {/* Two-Factor Authentication */}
         <div class="theme-card p-4 rounded-xl border theme-border">
-          <ToggleSwitch
-            checked={twoFactorEnabled()}
-            onChange={toggle2FA}
-            label={t('twoFactorAuth')}
-          />
+          <div class="opacity-100" classList={{ 'opacity-60 pointer-events-none': twoFALoading() }}>
+            <ToggleSwitch
+              checked={twoFactorEnabled()}
+              onChange={(val) => !twoFALoading() && toggle2FA(val)}
+              label={`${t('twoFactorAuth')} · ${twoFactorEnabled() ? 'ON' : (qrSvg() ? 'SETUP' : 'OFF')}`}
+            />
+          </div>
           <p class="text-xs theme-text-secondary mt-2">{t('twoFactorDescription')}</p>
+          {twoFALoading() && (
+            <div class="mt-2 text-xs theme-text-secondary">{t('loading') || 'Loading...'}</div>
+          )}
+          {twoFAError() && (
+            <div class="mt-2 text-xs text-red-600">{twoFAError()}</div>
+          )}
+          {/* Setup UI with QR and code input */}
+          {qrSvg() && (
+            <div class="mt-3 p-3 border rounded-lg theme-border theme-card">
+              <div class="mb-2 text-sm theme-text-primary">Scan QR di aplikasi authenticator, lalu masukkan kode 6 digit:</div>
+              <div class="mb-3" innerHTML={qrSvg()!} />
+              <div class="flex items-center gap-2">
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  maxlength="6"
+                  value={otpCode()}
+                  onInput={(e) => setOtpCode(e.currentTarget.value)}
+                  class="w-32 p-2 border theme-border rounded-lg theme-card theme-text-primary"
+                  placeholder="123456"
+                />
+                <button
+                  class="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
+                  disabled={otpCode().length !== 6 || twoFALoading()}
+                  onClick={confirm2FA}
+                >
+                  Verifikasi
+                </button>
+              </div>
+            </div>
+          )}
           {twoFactorEnabled() && (
             <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
               <p class="text-sm text-green-700">✓ {t('twoFactorEnabledNotice')}</p>
