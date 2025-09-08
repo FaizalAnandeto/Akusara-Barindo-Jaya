@@ -1,7 +1,7 @@
 // Simple 2FA API client that talks to backend
 const API_BASE_URL = 'http://localhost:8080/api';
 
-export interface TwoFAState { enabled: boolean }
+export interface TwoFAState { enabled: boolean; setupPending?: boolean }
 
 export async function fetchTwoFA(): Promise<TwoFAState> {
   const res = await fetch(`${API_BASE_URL}/2fa`);

@@ -531,8 +531,17 @@ const SecuritySection: Component = () => {
     setTwoFAError(null);
     try {
       if (enabled) {
-        const setup = await setupTwoFA();
-        setQrSvg(setup.qr_svg);
+        // If setup already pending, reuse existing secret and QR
+        const s: any = await fetchTwoFA();
+        if (s.setupPending) {
+          try {
+            const q = await fetchQr();
+            setQrSvg(q.qr_svg);
+          } catch {}
+        } else {
+          const setup = await setupTwoFA();
+          setQrSvg(setup.qr_svg);
+        }
         setTwoFactorEnabled(false);
       } else {
         await disableTwoFA();
