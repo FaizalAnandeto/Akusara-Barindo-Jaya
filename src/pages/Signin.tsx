@@ -25,7 +25,7 @@ const SignIn = () => {
     document.documentElement.classList.remove('light');
     
     // Apply sign-in specific styles to body
-    document.body.classList.add('signin-page');
+  document.body.classList.add('auth-page');
     document.body.style.background = 'linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%)';
   });
 
@@ -34,7 +34,7 @@ const SignIn = () => {
     const previousTheme = sessionStorage.getItem('previous-theme') || 'light';
     
     // Remove sign-in specific styling
-    document.body.classList.remove('signin-page');
+  document.body.classList.remove('auth-page');
     document.body.style.background = '';
     
     // Restore theme using SettingsContext to ensure proper state management

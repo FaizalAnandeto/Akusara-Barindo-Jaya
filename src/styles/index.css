@@ -31,177 +31,177 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Force white background for cards in light mode */
-html:not(.dark) [class*="bg-white"] {
+html:not(.dark) body:not(.auth-page) [class*="bg-white"] {
   background-color: #ffffff !important;
 }
 
-html:not(.dark) [class*="text-gray-900"] {
+html:not(.dark) body:not(.auth-page) [class*="text-gray-900"] {
   color: #111827 !important;
 }
 
-html:not(.dark) [class*="text-gray-600"] {
+html:not(.dark) body:not(.auth-page) [class*="text-gray-600"] {
   color: #6b7280 !important;
 }
 
-html:not(.dark) [class*="border-gray-200"] {
+html:not(.dark) body:not(.auth-page) [class*="border-gray-200"] {
   border-color: #e5e7eb !important;
 }
 
 /* Specific card styling for light mode */
-html:not(.dark) .theme-card {
+html:not(.dark) body:not(.auth-page) .theme-card {
   background-color: #ffffff !important; /* Pure white for better contrast */
   color: #000000 !important;
   border-color: #d1d5db !important; /* Slightly darker border */
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
 }
 
-html:not(.dark) .theme-text-primary {
+html:not(.dark) body:not(.auth-page) .theme-text-primary {
   color: #111827 !important; /* Very dark gray for maximum contrast */
 }
 
-html:not(.dark) .theme-text-secondary {
+html:not(.dark) body:not(.auth-page) .theme-text-secondary {
   color: #374151 !important; /* Darker gray for better readability */
 }
 
-html:not(.dark) .theme-text-tertiary {
+html:not(.dark) body:not(.auth-page) .theme-text-tertiary {
   color: #6b7280 !important; /* Medium gray for subtle text */
 }
 
 /* Dark mode styling */
-html.dark .theme-card {
+html.dark body:not(.auth-page) .theme-card {
   background-color: #1e293b !important;
   color: #ffffff !important;
   border-color: #475569 !important;
 }
 
-html.dark .theme-text-primary {
+html.dark body:not(.auth-page) .theme-text-primary {
   color: #ffffff !important;
 }
 
-html.dark .theme-text-secondary {
+html.dark body:not(.auth-page) .theme-text-secondary {
   color: #94a3b8 !important;
 }
 
-html.dark .theme-text-tertiary {
+html.dark body:not(.auth-page) .theme-text-tertiary {
   color: #cbd5e1 !important;
 }
 
 /* Additional utility classes for better theming */
-html:not(.dark) .theme-bg-subtle {
+html:not(.dark) body:not(.auth-page) .theme-bg-subtle {
   background-color: #f8fafc !important;
 }
 
-html.dark .theme-bg-subtle {
+html.dark body:not(.auth-page) .theme-bg-subtle {
   background-color: #334155 !important;
 }
 
-html:not(.dark) .theme-border {
+html:not(.dark) body:not(.auth-page) .theme-border {
   border-color: #e2e8f0 !important;
 }
 
-html.dark .theme-border {
+html.dark body:not(.auth-page) .theme-border {
   border-color: #475569 !important;
 }
 
 /* Additional utility classes for buttons and backgrounds */
-html:not(.dark) .theme-bg {
+html:not(.dark) body:not(.auth-page) .theme-bg {
   background-color: #f8fafc !important;
 }
 
-html.dark .theme-bg {
+html.dark body:not(.auth-page) .theme-bg {
   background-color: #334155 !important;
 }
 
-html:not(.dark) .theme-border {
+html:not(.dark) body:not(.auth-page) .theme-border {
   border-color: #e2e8f0 !important;
 }
 
-html.dark .theme-border {
+html.dark body:not(.auth-page) .theme-border {
   border-color: #475569 !important;
 }
 
 /* Override for specific neutral colors */
-html:not(.dark) [class*="bg-neutral-"] {
+html:not(.dark) body:not(.auth-page) [class*="bg-neutral-"] {
   background-color: #f8fafc !important;
 }
 
-html:not(.dark) [class*="text-neutral-"] {
+html:not(.dark) body:not(.auth-page) [class*="text-neutral-"] {
   color: #374151 !important;
 }
 
-html:not(.dark) [class*="border-neutral-"] {
+html:not(.dark) body:not(.auth-page) [class*="border-neutral-"] {
   border-color: #e5e7eb !important;
 }
 
 /* ===== Dark mode hardening for legacy light classes ===== */
 /* Fix black text in dark mode when components use *-900 text colors */
-html.dark [class*="text-gray-900"],
-html.dark [class*="text-neutral-900"],
-html.dark [class*="text-black"] {
+html.dark body:not(.auth-page) [class*="text-gray-900"],
+html.dark body:not(.auth-page) [class*="text-neutral-900"],
+html.dark body:not(.auth-page) [class*="text-black"] {
   color: #e5e7eb !important; /* slate-200 */
 }
-html.dark [class*="text-gray-800"],
-html.dark [class*="text-neutral-800"] {
+html.dark body:not(.auth-page) [class*="text-gray-800"],
+html.dark body:not(.auth-page) [class*="text-neutral-800"] {
   color: #e5e7eb !important; /* slate-200 */
 }
 
 /* Tune secondary/tertiary text often used in Profile */
-html.dark [class*="text-gray-700"],
-html.dark [class*="text-neutral-700"],
-html.dark [class*="text-gray-600"],
-html.dark [class*="text-neutral-600"] {
+html.dark body:not(.auth-page) [class*="text-gray-700"],
+html.dark body:not(.auth-page) [class*="text-neutral-700"],
+html.dark body:not(.auth-page) [class*="text-gray-600"],
+html.dark body:not(.auth-page) [class*="text-neutral-600"] {
   color: #cbd5e1 !important; /* slate-300 */
 }
 
 /* Replace pure white surfaces used by cards/inputs with dark surfaces */
-html.dark [class*="bg-white"] {
+html.dark body:not(.auth-page) [class*="bg-white"] {
   background-color: #1e293b !important; /* slate-800 card */
 }
 
 /* Dim light-tint backgrounds to subtle dark tints */
-html.dark [class*="bg-neutral-50"],
-html.dark [class*="bg-blue-50"],
-html.dark [class*="bg-amber-50"],
-html.dark [class*="bg-green-50"],
-html.dark [class*="bg-purple-50"],
-html.dark [class*="bg-orange-50"],
-html.dark [class*="bg-emerald-50"],
-html.dark [class*="bg-yellow-50"],
-html.dark [class*="bg-gray-50"],
-html.dark [class*="bg-red-50"] {
+html.dark body:not(.auth-page) [class*="bg-neutral-50"],
+html.dark body:not(.auth-page) [class*="bg-blue-50"],
+html.dark body:not(.auth-page) [class*="bg-amber-50"],
+html.dark body:not(.auth-page) [class*="bg-green-50"],
+html.dark body:not(.auth-page) [class*="bg-purple-50"],
+html.dark body:not(.auth-page) [class*="bg-orange-50"],
+html.dark body:not(.auth-page) [class*="bg-emerald-50"],
+html.dark body:not(.auth-page) [class*="bg-yellow-50"],
+html.dark body:not(.auth-page) [class*="bg-gray-50"],
+html.dark body:not(.auth-page) [class*="bg-red-50"] {
   background-color: #0f172a !important; /* slate-900 subtle */
 }
 
 /* Dim 100-tint backgrounds as well (common in badges and pills) */
-html.dark [class*="bg-neutral-100"],
-html.dark [class*="bg-blue-100"],
-html.dark [class*="bg-amber-100"],
-html.dark [class*="bg-green-100"],
-html.dark [class*="bg-purple-100"],
-html.dark [class*="bg-orange-100"],
-html.dark [class*="bg-emerald-100"],
-html.dark [class*="bg-yellow-100"],
-html.dark [class*="bg-gray-100"],
-html.dark [class*="bg-red-100"] {
+html.dark body:not(.auth-page) [class*="bg-neutral-100"],
+html.dark body:not(.auth-page) [class*="bg-blue-100"],
+html.dark body:not(.auth-page) [class*="bg-amber-100"],
+html.dark body:not(.auth-page) [class*="bg-green-100"],
+html.dark body:not(.auth-page) [class*="bg-purple-100"],
+html.dark body:not(.auth-page) [class*="bg-orange-100"],
+html.dark body:not(.auth-page) [class*="bg-emerald-100"],
+html.dark body:not(.auth-page) [class*="bg-yellow-100"],
+html.dark body:not(.auth-page) [class*="bg-gray-100"],
+html.dark body:not(.auth-page) [class*="bg-red-100"] {
   background-color: #111827 !important; /* gray-900-ish subtle */
 }
 
 /* Borders: lighten from light palette to dark contrast */
-html.dark [class*="border-gray-200"],
-html.dark [class*="border-neutral-200"],
-html.dark [class*="border-slate-200"] {
+html.dark body:not(.auth-page) [class*="border-gray-200"],
+html.dark body:not(.auth-page) [class*="border-neutral-200"],
+html.dark body:not(.auth-page) [class*="border-slate-200"] {
   border-color: #475569 !important; /* slate-600 */
 }
-html.dark [class*="border-gray-100"],
-html.dark [class*="border-neutral-100"],
-html.dark [class*="border-slate-100"] {
+html.dark body:not(.auth-page) [class*="border-gray-100"],
+html.dark body:not(.auth-page) [class*="border-neutral-100"],
+html.dark body:not(.auth-page) [class*="border-slate-100"] {
   border-color: #475569 !important; /* slate-600 */
 }
 
 /* Inputs: ensure text remains readable in dark backgrounds */
-html.dark input,
-html.dark textarea,
-html.dark select {
+html.dark body:not(.auth-page) input,
+html.dark body:not(.auth-page) textarea,
+html.dark body:not(.auth-page) select {
   color: #e5e7eb; /* slate-200 */
 }
 

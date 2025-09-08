@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal, onMount, onCleanup } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useSettings } from "../contexts/SettingsContext";
@@ -10,6 +10,14 @@ const ForgotPassword = () => {
   const [isSubmitted, setIsSubmitted] = createSignal(false);
   const [showValidationMessage, setShowValidationMessage] = createSignal("");
   const navigate = useNavigate();
+
+  onMount(() => {
+    document.body.classList.add('auth-page');
+  });
+
+  onCleanup(() => {
+    document.body.classList.remove('auth-page');
+  });
 
   // Validate email format
   const isValidEmail = (email) => {
