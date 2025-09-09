@@ -9,7 +9,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   username: string;
-  password: string;
+  twofa_required?: boolean;
 }
 
 export interface ApiError {
@@ -32,7 +32,7 @@ export const loginUser = async (credentials: LoginRequest): Promise<LoginRespons
       throw new Error(errorData.error || 'Login failed');
     }
 
-    const data: LoginResponse = await response.json();
+  const data: LoginResponse = await response.json();
     return data;
   } catch (error) {
     if (error instanceof Error) {
