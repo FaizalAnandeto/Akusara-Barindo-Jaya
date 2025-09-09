@@ -1,5 +1,6 @@
 import { createSignal, onMount, onCleanup } from "solid-js";
 import { useNavigate } from "@solidjs/router";
+import { verifyTwoFA } from "../services/twofa";
 
 const Verify2FA = () => {
   const navigate = useNavigate();
@@ -19,16 +20,7 @@ const Verify2FA = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:8080/api/2fa/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: code() }),
-      });
-      if (!res.ok) {
-        let msg = "Verifikasi gagal";
-        try { const j = await res.json(); msg = j?.error || msg; } catch {}
-        throw new Error(msg);
-      }
+      await verifyTwoFA(code());
       // Mark 2FA as enabled (persist) and this session as passed
       try { localStorage.setItem("twofa_enabled", "1"); } catch {}
       sessionStorage.setItem("twofa_passed", "1");

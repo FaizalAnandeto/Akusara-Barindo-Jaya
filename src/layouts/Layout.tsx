@@ -39,7 +39,7 @@ const Layout = (props) => {
     return "dashboard";
   };
 
-  // Client-side 2FA gate: if user logged in and backend required 2FA but session not passed, send to verify page
+  // Client-side 2FA gate: if user logged in and this user's 2FA is required but session not passed, send to verify page
   createEffect(() => {
     const userRaw = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
     let twofaRequired = false;
