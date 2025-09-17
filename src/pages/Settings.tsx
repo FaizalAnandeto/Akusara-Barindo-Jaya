@@ -2,7 +2,7 @@ import { Component, createSignal, For, Show, createEffect, onMount } from "solid
 import Layout from "../layouts/Layout";
 import { useSettings } from "../contexts/SettingsContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import { fetchTwoFA, setTwoFA as apiSetTwoFA, setupTwoFA, verifyTwoFA, disableTwoFA, fetchQr } from "../services/twofa";
+import { fetchTwoFA, setupTwoFA, verifyTwoFA, disableTwoFA, fetchQr } from "../services/twofa";
 
 // Enhanced Card Component
 const Card: Component<{ children: any; class?: string }> = (props) => {

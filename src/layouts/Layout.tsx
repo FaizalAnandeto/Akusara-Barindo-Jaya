@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
-import { useLocation } from "@solidjs/router";
+import { useLocation, useNavigate } from "@solidjs/router";
+import { createEffect } from "solid-js";
 import Sidebar from "../components/Sidebar";
 import { Navbar } from "../components";
 import { useSettings } from "../contexts/SettingsContext";
@@ -17,6 +18,7 @@ const Layout = (props) => {
   const [sidebarOpen, setSidebarOpen] = createSignal(initialSidebar);
   const location = useLocation();
   const { settings } = useSettings();
+  const navigate = useNavigate();
 
   const toggleSidebar = () => {
     setSidebarOpen((v) => {
@@ -36,6 +38,23 @@ const Layout = (props) => {
     if (pathname === "/profile") return "profile";
     return "dashboard";
   };
+
+  // Client-side 2FA gate: if user logged in and this user's 2FA is required but session not passed, send to verify page
+  createEffect(() => {
+    const userRaw = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    let twofaRequired = false;
+    try { twofaRequired = !!(userRaw && JSON.parse(userRaw)?.twofa_required); } catch {}
+    // Fallback to local twofa_enabled if present
+    if (!twofaRequired && typeof window !== 'undefined') {
+      try { twofaRequired = localStorage.getItem('twofa_enabled') === '1'; } catch {}
+    }
+    const passed = typeof window !== 'undefined' ? sessionStorage.getItem('twofa_passed') === '1' : false;
+    const path = location.pathname;
+    const isAuthPage = path === '/signin' || path === '/signup' || path === '/forgotpw' || path === '/verify-2fa';
+    if (twofaRequired && !passed && !isAuthPage) {
+      navigate('/verify-2fa');
+    }
+  });
 
   return (
     <div 

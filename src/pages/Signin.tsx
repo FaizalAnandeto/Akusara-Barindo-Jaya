@@ -83,10 +83,12 @@ const SignIn = () => {
         password: password(),
       });
 
-      console.log("Login successful:", response);
-      
-      // Store user info if needed
-      localStorage.setItem('user', JSON.stringify(response));
+  console.log("Login successful:", response);
+  // Store user info
+  localStorage.setItem('user', JSON.stringify(response));
+  // Reset 2FA session flag each login and persist requirement
+  sessionStorage.removeItem('twofa_passed');
+  try { if (response.twofa_required) localStorage.setItem('twofa_enabled', '1'); else localStorage.removeItem('twofa_enabled'); } catch {}
       
       // Restore previous theme before navigation using SettingsContext
       const previousTheme = sessionStorage.getItem('previous-theme') || 'light';
@@ -105,11 +107,15 @@ const SignIn = () => {
       
       // Small delay to ensure theme is applied before navigation
       setTimeout(() => {
-        navigate("/dashboard");
+        if (response.twofa_required) {
+          navigate("/verify-2fa");
+        } else {
+          navigate("/dashboard");
+        }
       }, 50);
 
     } catch (error) {
-      // Offline fallback: create a local user and proceed without backend
+  // Offline fallback: create a local user and proceed; keep local twofa_enabled as-is
       console.warn("Backend login failed, using offline fallback user.");
       const fallbackUser = {
         username: email(),
