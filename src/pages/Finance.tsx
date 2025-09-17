@@ -1,19 +1,41 @@
-import { Component, createSignal, For, Show, createEffect } from "solid-js";
+import {
+  Component,
+  createSignal,
+  For,
+  Show,
+  createEffect,
+  onMount,
+  onCleanup,
+} from "solid-js";
 import { useSettings } from "../contexts/SettingsContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import Layout from "../layouts/Layout";
+import {
+  fetchFinanceOverview,
+  fetchResidents,
+  fetchTransactions,
+  approveResident,
+  unapproveResident,
+  deleteTransaction,
+  remindResident,
+  addTransaction,
+  exportTransactionsCSV,
+  exportTransactionsPDF,
+  exportTransactionsExcelXLS,
+  fetchFinanceState,
+} from "../services/finance";
 
 // Enhanced Card Component
 const Card: Component<{ children: any; class?: string }> = (props) => {
   const { settings } = useSettings();
   const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
-  
+
   // Update theme reactively
   createEffect(() => {
     setCurrentTheme(settings().theme);
-    console.log('Finance Card theme updated to:', settings().theme);
+    console.log("Finance Card theme updated to:", settings().theme);
   });
-  
+
   return (
     <div
       class={`theme-card rounded-lg p-6 shadow-sm border transition-all duration-300 hover:shadow-md ${
@@ -30,21 +52,27 @@ const StatusBadge: Component<{ status: string }> = (props) => {
   const { settings } = useSettings();
   const { t } = useLanguage();
   const [currentTheme, setCurrentTheme] = createSignal(settings().theme);
-  
+
   // Update theme reactively
   createEffect(() => {
     setCurrentTheme(settings().theme);
   });
 
   const getStatusColor = () => {
-    const isDark = currentTheme() === 'dark';
+    const isDark = currentTheme() === "dark";
     switch (props.status.toLowerCase()) {
       case "paid":
-        return isDark ? "bg-green-900/50 text-green-400" : "bg-green-100 text-green-800";
+        return isDark
+          ? "bg-green-900/50 text-green-400"
+          : "bg-green-100 text-green-800";
       case "pending":
-        return isDark ? "bg-yellow-900/50 text-yellow-400" : "bg-yellow-100 text-yellow-800";
+        return isDark
+          ? "bg-yellow-900/50 text-yellow-400"
+          : "bg-yellow-100 text-yellow-800";
       case "unpaid":
-        return isDark ? "bg-red-900/50 text-red-400" : "bg-red-100 text-red-800";
+        return isDark
+          ? "bg-red-900/50 text-red-400"
+          : "bg-red-100 text-red-800";
       default:
         return "theme-bg-subtle theme-text-secondary";
     }
@@ -75,15 +103,54 @@ const StatusBadge: Component<{ status: string }> = (props) => {
 // Finance Overview Component
 const FinanceOverview: Component = () => {
   const { t } = useLanguage();
-  const [financeData] = createSignal({
-    totalIuran: 125000000,
-    paidPercentage: 78,
-    unpaidPercentage: 22,
-    outstandingBalance: 27500000,
-    totalResidents: 156,
-    paidResidents: 122,
-    unpaidResidents: 34,
-    thisMonth: "Agustus 2025",
+  const [financeData, setFinanceData] = createSignal<any>({
+    totalIuran: 0,
+    paidPercentage: 0,
+    unpaidPercentage: 0,
+    outstandingBalance: 0,
+    totalResidents: 0,
+    paidResidents: 0,
+    unpaidResidents: 0,
+    thisMonth: "-",
+  });
+  const [loading, setLoading] = createSignal(false);
+  const [error, setError] = createSignal<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setFinanceData(await fetchFinanceOverview());
+    } catch (e: any) {
+      setError(e?.message || "Gagal memuat ringkasan");
+    } finally {
+      setLoading(false);
+    }
+  };
+  onMount(() => {
+    load();
+    const refreshHandler = () => load();
+    const overviewUpdateHandler = (e: Event) => {
+      const custom = e as CustomEvent;
+      if (custom.detail && typeof custom.detail === "object") {
+        setFinanceData((prev: any) => ({ ...prev, ...custom.detail }));
+      }
+      // Safety re-fetch to ensure backend state matches
+      load();
+      setTimeout(() => load(), 150); // double-check after small delay
+    };
+    window.addEventListener("finance:refresh", refreshHandler);
+    window.addEventListener(
+      "finance:overview:update",
+      overviewUpdateHandler as any
+    );
+    onCleanup(() => {
+      window.removeEventListener("finance:refresh", refreshHandler);
+      window.removeEventListener(
+        "finance:overview:update",
+        overviewUpdateHandler as any
+      );
+    });
   });
 
   return (
@@ -113,6 +180,14 @@ const FinanceOverview: Component = () => {
         <div class="text-sm theme-text-secondary">
           {t("financeDescription")}
         </div>
+        <Show when={loading()}>
+          <div class="text-xs theme-text-secondary mt-1">
+            {t("loading") || "Loading..."}
+          </div>
+        </Show>
+        <Show when={error()}>
+          <div class="text-xs text-red-600 mt-1">{error()}</div>
+        </Show>
       </div>
 
       {/* Summary Cards */}
@@ -268,7 +343,8 @@ const FinanceOverview: Component = () => {
             Rp {financeData().outstandingBalance.toLocaleString("id-ID")}
           </div>
           <div class="text-sm text-red-600">
-            {t("outstandingBalance")} ({financeData().unpaidResidents} {t("warga")})
+            {t("outstandingBalance")} ({financeData().unpaidResidents}{" "}
+            {t("warga")})
           </div>
         </div>
 
@@ -333,8 +409,10 @@ const FinanceOverview: Component = () => {
       {/* Progress Bar */}
       <div class="mb-6">
         <div class="flex justify-between text-sm font-medium theme-text-primary mb-2">
-          <span>{t('paymentProgress')}</span>
-          <span>{financeData().paidPercentage}% {t('complete')}</span>
+          <span>{t("paymentProgress")}</span>
+          <span>
+            {financeData().paidPercentage}% {t("complete")}
+          </span>
         </div>
         <div class="w-full theme-bg-subtle rounded-full h-3">
           <div
@@ -346,7 +424,10 @@ const FinanceOverview: Component = () => {
 
       {/* Export Buttons */}
       <div class="flex flex-wrap gap-3">
-        <button class="bg-gradient-to-r from-emerald-600 to-green-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center gap-2">
+        <button
+          class="bg-gradient-to-r from-emerald-600 to-green-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center gap-2"
+          onClick={() => exportTransactionsPDF()}
+        >
           <svg
             width="16"
             height="16"
@@ -394,10 +475,13 @@ const FinanceOverview: Component = () => {
               stroke-linejoin="round"
             />
           </svg>
-          {t('exportPdf')}
+          {t("exportPdf")}
         </button>
 
-        <button class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center gap-2">
+        <button
+          class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center gap-2"
+          onClick={() => exportTransactionsExcelXLS()}
+        >
           <svg
             width="16"
             height="16"
@@ -438,7 +522,7 @@ const FinanceOverview: Component = () => {
               stroke-linecap="round"
             />
           </svg>
-          {t('exportExcel')}
+          {t("exportExcel")}
         </button>
       </div>
     </Card>
@@ -448,58 +532,42 @@ const FinanceOverview: Component = () => {
 // Payment Status Component
 const PaymentStatus: Component = () => {
   const { t } = useLanguage();
-  const [residents] = createSignal([
-    {
-      id: 1,
-      name: "Ahmad Wijaya",
-      block: "A-12",
-      amount: 800000,
-      status: "paid",
-      dueDate: "31 Agustus 2025",
-      paymentDate: "25 Agustus 2025",
-      method: "Transfer Bank",
-    },
-    {
-      id: 2,
-      name: "Siti Nurhaliza",
-      block: "B-05",
-      amount: 800000,
-      status: "pending",
-      dueDate: "31 Agustus 2025",
-      paymentDate: "28 Agustus 2025",
-      method: "QRIS",
-    },
-    {
-      id: 3,
-      name: "Budi Santoso",
-      block: "C-18",
-      amount: 800000,
-      status: "unpaid",
-      dueDate: "31 Agustus 2025",
-      paymentDate: "-",
-      method: "-",
-    },
-    {
-      id: 4,
-      name: "Lisa Andriani",
-      block: "D-07",
-      amount: 800000,
-      status: "paid",
-      dueDate: "31 Agustus 2025",
-      paymentDate: "20 Agustus 2025",
-      method: t("eWallet"),
-    },
-    {
-      id: 5,
-      name: "Rudi Hermawan",
-      block: "A-03",
-      amount: 800000,
-      status: "unpaid",
-      dueDate: "31 Agustus 2025",
-      paymentDate: "-",
-      method: "-",
-    },
-  ]);
+  const [residents, setResidents] = createSignal<any[]>([]);
+  const [loading, setLoading] = createSignal(false);
+  const [error, setError] = createSignal<string | null>(null);
+  const [showModal, setShowModal] = createSignal(false);
+  const [modalResident, setModalResident] = createSignal<any | null>(null);
+  const [modalTx, setModalTx] = createSignal<any[]>([]);
+  const [modalLoading, setModalLoading] = createSignal(false);
+  const [modalError, setModalError] = createSignal<string | null>(null);
+  const [busyId, setBusyId] = createSignal<number | null>(null);
+
+  const load = async (unified = false) => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (unified) {
+        const state = await fetchFinanceState();
+        setResidents(state.residents);
+        // broadcast fresh overview if came via unified call
+        window.dispatchEvent(
+          new CustomEvent("finance:overview:update", { detail: state.overview })
+        );
+      } else {
+        setResidents(await fetchResidents());
+      }
+    } catch (e: any) {
+      setError(e?.message || "Gagal memuat data");
+    } finally {
+      setLoading(false);
+    }
+  };
+  onMount(() => {
+    load(true);
+    const handler = () => !busyId() && load(true); // always unified to keep overview in sync
+    window.addEventListener("finance:refresh", handler);
+    onCleanup(() => window.removeEventListener("finance:refresh", handler));
+  });
 
   const [filterStatus, setFilterStatus] = createSignal("all");
 
@@ -514,6 +582,24 @@ const PaymentStatus: Component = () => {
   const filteredResidents = () => {
     if (filterStatus() === "all") return residents();
     return residents().filter((resident) => resident.status === filterStatus());
+  };
+
+  const openView = async (resident: any) => {
+    setModalResident(resident);
+    setShowModal(true);
+    setModalLoading(true);
+    setModalError(null);
+    try {
+      const all = await fetchTransactions();
+      const txs = all.filter(
+        (t) => t.resident === resident.name && t.block === resident.block
+      );
+      setModalTx(txs);
+    } catch (e: any) {
+      setModalError(e?.message || "Gagal memuat transaksi");
+    } finally {
+      setModalLoading(false);
+    }
   };
 
   return (
@@ -542,6 +628,14 @@ const PaymentStatus: Component = () => {
         <div class="text-sm theme-text-secondary">
           {t("paymentStatusDescription")}
         </div>
+        <Show when={loading()}>
+          <div class="text-xs theme-text-secondary mt-1">
+            {t("loading") || "Loading..."}
+          </div>
+        </Show>
+        <Show when={error()}>
+          <div class="text-xs text-red-600 mt-1">{error()}</div>
+        </Show>
       </div>
 
       {/* Filter Buttons */}
@@ -574,7 +668,8 @@ const PaymentStatus: Component = () => {
               : "theme-bg-subtle theme-text-primary"
           }`}
         >
-          {t("pending")} ({residents().filter((r) => r.status === "pending").length})
+          {t("pending")} (
+          {residents().filter((r) => r.status === "pending").length})
         </button>
         <button
           onClick={() => setFilterStatus("unpaid")}
@@ -584,7 +679,8 @@ const PaymentStatus: Component = () => {
               : "theme-bg-subtle theme-text-primary"
           }`}
         >
-          {t("unpaid")} ({residents().filter((r) => r.status === "unpaid").length})
+          {t("unpaid")} (
+          {residents().filter((r) => r.status === "unpaid").length})
         </button>
       </div>
 
@@ -597,19 +693,19 @@ const PaymentStatus: Component = () => {
                 {t("residents")}
               </th>
               <th class="text-left p-4 font-semibold theme-text-primary">
-                {t('blockUnit')}
+                {t("blockUnit")}
               </th>
               <th class="text-left p-4 font-semibold theme-text-primary">
-                {t('amount')}
+                {t("amount")}
               </th>
               <th class="text-left p-4 font-semibold theme-text-primary">
-                {t('status')}
+                {t("status")}
               </th>
               <th class="text-left p-4 font-semibold theme-text-primary">
-                {t('paymentMethodLabel')}
+                {t("paymentMethodLabel")}
               </th>
               <th class="text-left p-4 font-semibold theme-text-primary">
-                {t('actions')}
+                {t("actions")}
               </th>
             </tr>
           </thead>
@@ -627,7 +723,7 @@ const PaymentStatus: Component = () => {
                           {resident.name}
                         </div>
                         <div class="text-sm theme-text-secondary">
-                          {t('date')}: {resident.dueDate}
+                          {t("date")}: {resident.due_date}
                         </div>
                       </div>
                     </div>
@@ -652,7 +748,10 @@ const PaymentStatus: Component = () => {
                   </td>
                   <td class="p-4">
                     <div class="flex items-center gap-2">
-                      <button class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors flex items-center gap-1">
+                      <button
+                        class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors flex items-center gap-1"
+                        onClick={() => openView(resident)}
+                      >
                         <svg
                           width="12"
                           height="12"
@@ -673,11 +772,25 @@ const PaymentStatus: Component = () => {
                             stroke-width="2"
                           />
                         </svg>
-                        {t('view')}
+                        {t("view")}
                       </button>
 
                       <Show when={resident.status === "unpaid"}>
-                        <button class="bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-sm font-medium hover:bg-orange-200 transition-colors flex items-center gap-1">
+                        <button
+                          class="bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-sm font-medium hover:bg-orange-200 transition-colors flex items-center gap-1"
+                          disabled={busyId() === resident.id}
+                          onClick={async () => {
+                            try {
+                              setBusyId(resident.id);
+                              await remindResident(resident.id);
+                              alert("Pengingat terkirim");
+                            } catch (e) {
+                              alert("Gagal mengirim pengingat");
+                            } finally {
+                              setBusyId(null);
+                            }
+                          }}
+                        >
                           <svg
                             width="12"
                             height="12"
@@ -693,12 +806,49 @@ const PaymentStatus: Component = () => {
                               stroke-linejoin="round"
                             />
                           </svg>
-                          {t('remind')}
+                          {t("remind")}
                         </button>
                       </Show>
 
                       <Show when={resident.status === "pending"}>
-                        <button class="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors flex items-center gap-1">
+                        <button
+                          class="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors flex items-center gap-1"
+                          disabled={busyId() === resident.id}
+                          onClick={async () => {
+                            if (busyId()) return;
+                            setBusyId(resident.id);
+                            const id = resident.id;
+                            try {
+                              await approveResident(id);
+                              // Optimistic local update to avoid flicker / extra clicks
+                              setResidents((rs) =>
+                                rs.map((r) =>
+                                  r.id === id
+                                    ? {
+                                        ...r,
+                                        status: "paid",
+                                        payment_date:
+                                          new Date().toLocaleDateString(
+                                            "id-ID"
+                                          ),
+                                        method:
+                                          r.method === "-"
+                                            ? "Manual"
+                                            : r.method,
+                                      }
+                                    : r
+                                )
+                              );
+                              // Unified state reload to keep local list + overview in sync (single call to avoid race)
+                              await load(true);
+                            } catch (e) {
+                              console.error("approve error", e);
+                              alert("Gagal approve");
+                            } finally {
+                              setBusyId(null);
+                            }
+                          }}
+                        >
                           <svg
                             width="12"
                             height="12"
@@ -714,7 +864,65 @@ const PaymentStatus: Component = () => {
                               stroke-linejoin="round"
                             />
                           </svg>
-                          {t('approve')}
+                          {t("approve")}
+                        </button>
+                      </Show>
+
+                      <Show when={resident.status === "paid"}>
+                        <button
+                          class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-lg text-sm font-medium hover:bg-yellow-200 transition-colors flex items-center gap-1"
+                          disabled={busyId() === resident.id}
+                          onClick={async () => {
+                            if (busyId()) return;
+                            setBusyId(resident.id);
+                            const id = resident.id;
+                            try {
+                              await unapproveResident(id);
+                              // Optimistic local update to pending
+                              setResidents((rs) =>
+                                rs.map((r) =>
+                                  r.id === id
+                                    ? {
+                                        ...r,
+                                        status: "pending",
+                                        payment_date: null,
+                                      }
+                                    : r
+                                )
+                              );
+                              await load(true); // single unified reload
+                            } catch (e) {
+                              console.error("unapprove error", e);
+                              alert("Gagal unapprove");
+                            } finally {
+                              setBusyId(null);
+                            }
+                          }}
+                        >
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            class="text-yellow-700"
+                          >
+                            <path
+                              d="M9 12l2 2 4-4"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                            <line
+                              x1="6"
+                              y1="18"
+                              x2="18"
+                              y2="6"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            />
+                          </svg>
+                          Unapprove
                         </button>
                       </Show>
                     </div>
@@ -725,6 +933,100 @@ const PaymentStatus: Component = () => {
           </tbody>
         </table>
       </div>
+
+      <Show when={showModal()}>
+        <div
+          class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowModal(false);
+          }}
+        >
+          <div class="theme-card rounded-xl p-6 border theme-border max-w-2xl w-full">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                  {modalResident()?.name?.charAt(0)}
+                </div>
+                <div>
+                  <div class="text-lg font-semibold theme-text-primary">
+                    {modalResident()?.name}
+                  </div>
+                  <div class="text-sm theme-text-secondary">
+                    {modalResident()?.block} • Rp{" "}
+                    {modalResident()?.amount?.toLocaleString("id-ID")}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <StatusBadge status={modalResident()?.status || "unpaid"} />
+                <button
+                  class="px-3 py-1 rounded-lg theme-bg-subtle theme-text-primary"
+                  onClick={() => setShowModal(false)}
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="theme-card p-4 rounded-lg border theme-border">
+                <div class="text-sm theme-text-secondary mb-1">
+                  {t("paymentMethodLabel")}
+                </div>
+                <div class="font-medium theme-text-primary">
+                  {modalResident()?.method}
+                </div>
+              </div>
+              <div class="theme-card p-4 rounded-lg border theme-border">
+                <div class="text-sm theme-text-secondary mb-1">{t("date")}</div>
+                <div class="font-medium theme-text-primary">
+                  {modalResident()?.payment_date || "-"}
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-2 font-semibold theme-text-primary">
+              {t("transactionHistory")}
+            </div>
+            <Show when={modalLoading()}>
+              <div class="text-sm theme-text-secondary">
+                {t("loading") || "Loading..."}
+              </div>
+            </Show>
+            <Show when={modalError()}>
+              <div class="text-sm text-red-600">{modalError()}</div>
+            </Show>
+            <div class="space-y-2 max-h-64 overflow-auto">
+              <Show
+                when={modalTx().length > 0}
+                fallback={
+                  <div class="text-sm theme-text-secondary">
+                    {t("noData") || "Belum ada transaksi"}
+                  </div>
+                }
+              >
+                <For each={modalTx()}>
+                  {(tx) => (
+                    <div class="flex items-center justify-between theme-card p-3 rounded-lg border theme-border">
+                      <div>
+                        <div class="font-medium theme-text-primary">
+                          {tx.type || tx.tx_type}
+                        </div>
+                        <div class="text-xs theme-text-secondary">
+                          {tx.date} • {tx.time} • {tx.method}
+                        </div>
+                      </div>
+                      <div class="font-semibold text-green-700">
+                        Rp {tx.amount.toLocaleString("id-ID")}
+                      </div>
+                    </div>
+                  )}
+                </For>
+              </Show>
+            </div>
+          </div>
+        </div>
+      </Show>
     </Card>
   );
 };
@@ -732,63 +1034,27 @@ const PaymentStatus: Component = () => {
 // Transaction History Component
 const TransactionHistory: Component = () => {
   const { t } = useLanguage();
-  const [transactions] = createSignal([
-    {
-      id: "TXN-001",
-      resident: "Ahmad Wijaya",
-      block: "A-12",
-      amount: 800000,
-      type: "Monthly Fee",
-      method: "Transfer Bank",
-      date: "25 Agustus 2025",
-      time: "14:30",
-      status: "completed",
-    },
-    {
-      id: "TXN-002",
-      resident: "Lisa Andriani",
-      block: "D-07",
-      amount: 800000,
-      type: "Monthly Fee",
-      method: t("eWallet"),
-      date: "20 Agustus 2025",
-      time: "09:15",
-      status: "completed",
-    },
-    {
-      id: "TXN-003",
-      resident: "Siti Nurhaliza",
-      block: "B-05",
-      amount: 800000,
-      type: "Monthly Fee",
-      method: "QRIS",
-      date: "28 Agustus 2025",
-      time: "16:45",
-      status: "pending",
-    },
-    {
-      id: "TXN-004",
-      resident: "Muhammad Rizki",
-      block: "C-22",
-      amount: 1200000,
-      type: "Security Deposit",
-      method: "Transfer Bank",
-      date: "15 Agustus 2025",
-      time: "11:20",
-      status: "completed",
-    },
-    {
-      id: "TXN-005",
-      resident: "Diana Putri",
-      block: "A-08",
-      amount: 800000,
-      type: "Monthly Fee",
-      method: "Cash",
-      date: "10 Agustus 2025",
-      time: "13:00",
-      status: "completed",
-    },
-  ]);
+  const [transactions, setTransactions] = createSignal<any[]>([]);
+  const [loading, setLoading] = createSignal(false);
+  const [error, setError] = createSignal<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setTransactions(await fetchTransactions());
+    } catch (e: any) {
+      setError(e?.message || "Gagal memuat transaksi");
+    } finally {
+      setLoading(false);
+    }
+  };
+  onMount(() => {
+    load();
+    const handler = () => load();
+    window.addEventListener("finance:refresh", handler);
+    onCleanup(() => window.removeEventListener("finance:refresh", handler));
+  });
 
   const typeLabel = (type: string) => {
     switch (type) {
@@ -824,16 +1090,24 @@ const TransactionHistory: Component = () => {
               />
             </svg>
           </div>
-          {t('transactionHistory')}
+          {t("transactionHistory")}
         </div>
         <div class="text-sm theme-text-secondary">
-          {t('transactionHistoryDesc')}
+          {t("transactionHistoryDesc")}
         </div>
+        <Show when={loading()}>
+          <div class="text-xs theme-text-secondary mt-1">
+            {t("loading") || "Loading..."}
+          </div>
+        </Show>
+        <Show when={error()}>
+          <div class="text-xs text-red-600 mt-1">{error()}</div>
+        </Show>
       </div>
 
       {/* Filter by Month/Year */}
       <div class="flex flex-wrap gap-3 mb-6">
-  <select class="theme-card border theme-border rounded-lg px-4 py-2 theme-text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <select class="theme-card border theme-border rounded-lg px-4 py-2 theme-text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           <option>Agustus 2025</option>
           <option>Juli 2025</option>
           <option>Juni 2025</option>
@@ -841,10 +1115,10 @@ const TransactionHistory: Component = () => {
         </select>
 
         <select class="theme-card border theme-border rounded-lg px-4 py-2 theme-text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option>{t('allTypes')}</option>
-          <option>{t('monthlyFee')}</option>
-          <option>{t('securityDeposit')}</option>
-          <option>{t('maintenanceFee')}</option>
+          <option>{t("allTypes")}</option>
+          <option>{t("monthlyFee")}</option>
+          <option>{t("securityDeposit")}</option>
+          <option>{t("maintenanceFee")}</option>
         </select>
       </div>
 
@@ -867,7 +1141,8 @@ const TransactionHistory: Component = () => {
                       {transaction.resident} • {transaction.block}
                     </div>
                     <div class="text-sm theme-text-secondary">
-                      {transaction.id} • {typeLabel(transaction.type)}
+                      {transaction.id} •{" "}
+                      {typeLabel(transaction.type || transaction.tx_type)}
                     </div>
                   </div>
                 </div>
@@ -885,11 +1160,61 @@ const TransactionHistory: Component = () => {
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span class="text-sm theme-text-secondary">
-                    {t('paymentMethodLabel')}: {transaction.method}
+                    {t("paymentMethodLabel")}: {transaction.method}
                   </span>
                 </div>
-
-                <StatusBadge status={transaction.status} />
+                <div class="flex items-center gap-2">
+                  <StatusBadge status={transaction.status} />
+                  <button
+                    class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors flex items-center gap-1"
+                    onClick={async () => {
+                      try {
+                        if (confirm("Hapus transaksi ini?")) {
+                          await deleteTransaction(transaction.id);
+                          await load();
+                          window.dispatchEvent(
+                            new CustomEvent("finance:refresh")
+                          );
+                        }
+                      } catch {
+                        alert("Gagal menghapus transaksi");
+                      }
+                    }}
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      class="text-red-600"
+                    >
+                      <path
+                        d="M3 6h18"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                      <path
+                        d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
+                      <path
+                        d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                      <path
+                        d="M10 11v6M14 11v6"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                    {t("delete") || "Delete"}
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -910,6 +1235,51 @@ const AddTransaction: Component = () => {
     method: "cash",
     notes: "",
   });
+  const [submitting, setSubmitting] = createSignal(false);
+  const [error, setError] = createSignal<string | null>(null);
+
+  const onSubmit = async (e: Event) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      await addTransaction({
+        resident: formData().resident,
+        block: formData().block,
+        amount: Number(formData().amount || 0),
+        type:
+          formData().type === "monthly"
+            ? "Monthly Fee"
+            : formData().type === "security"
+            ? "Security Deposit"
+            : formData().type === "maintenance"
+            ? "Maintenance Fee"
+            : "Other",
+        method:
+          formData().method === "ewallet"
+            ? "e-Wallet"
+            : formData().method === "transfer"
+            ? "Transfer Bank"
+            : formData().method.toUpperCase(),
+        notes: formData().notes || undefined,
+      });
+      alert(t("saveTransaction") + " ✓");
+      // Optionally: trigger a custom event so parent widgets refresh (simple approach: reload window section)
+      window.dispatchEvent(new CustomEvent("finance:refresh"));
+      setFormData({
+        resident: "",
+        block: "",
+        amount: "",
+        type: "monthly",
+        method: "cash",
+        notes: "",
+      });
+    } catch (e: any) {
+      setError(e?.message || "Gagal menyimpan transaksi");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Card>
@@ -955,7 +1325,7 @@ const AddTransaction: Component = () => {
         </div>
       </div>
 
-      <form class="space-y-4">
+      <form class="space-y-4" onSubmit={onSubmit}>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium theme-text-primary mb-2">
@@ -965,6 +1335,13 @@ const AddTransaction: Component = () => {
               type="text"
               placeholder={t("enterResidentName")}
               class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={formData().resident}
+              onInput={(e) =>
+                setFormData({
+                  ...formData(),
+                  resident: (e.target as HTMLInputElement).value,
+                })
+              }
             />
           </div>
 
@@ -976,6 +1353,13 @@ const AddTransaction: Component = () => {
               type="text"
               placeholder={t("blockUnitPlaceholder")}
               class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={formData().block}
+              onInput={(e) =>
+                setFormData({
+                  ...formData(),
+                  block: (e.target as HTMLInputElement).value,
+                })
+              }
             />
           </div>
         </div>
@@ -989,6 +1373,13 @@ const AddTransaction: Component = () => {
               type="number"
               placeholder="800000"
               class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={formData().amount}
+              onInput={(e) =>
+                setFormData({
+                  ...formData(),
+                  amount: (e.target as HTMLInputElement).value,
+                })
+              }
             />
           </div>
 
@@ -996,7 +1387,16 @@ const AddTransaction: Component = () => {
             <label class="block text-sm font-medium theme-text-primary mb-2">
               {t("paymentType")}
             </label>
-            <select class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <select
+              class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={formData().type}
+              onChange={(e) =>
+                setFormData({
+                  ...formData(),
+                  type: (e.target as HTMLSelectElement).value,
+                })
+              }
+            >
               <option value="monthly">{t("monthlyFee")}</option>
               <option value="security">{t("securityDeposit")}</option>
               <option value="maintenance">{t("maintenanceFee")}</option>
@@ -1009,7 +1409,16 @@ const AddTransaction: Component = () => {
           <label class="block text-sm font-medium theme-text-primary mb-2">
             {t("paymentMethodLabel")}
           </label>
-          <select class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <select
+            class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            value={formData().method}
+            onChange={(e) =>
+              setFormData({
+                ...formData(),
+                method: (e.target as HTMLSelectElement).value,
+              })
+            }
+          >
             <option value="cash">{t("cash")}</option>
             <option value="transfer">{t("bankTransfer")}</option>
             <option value="ewallet">{t("eWallet")}</option>
@@ -1025,13 +1434,29 @@ const AddTransaction: Component = () => {
             placeholder={t("addNotePlaceholder")}
             rows="3"
             class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            value={formData().notes}
+            onInput={(e) =>
+              setFormData({
+                ...formData(),
+                notes: (e.target as HTMLTextAreaElement).value,
+              })
+            }
           ></textarea>
         </div>
 
         <div class="flex gap-3 pt-4">
+          <Show when={error()}>
+            <div class="text-sm text-red-600">{error()}</div>
+          </Show>
+
           <button
             type="submit"
-            class="bg-gradient-to-r from-green-600 to-emerald-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center gap-2"
+            disabled={submitting()}
+            class={`bg-gradient-to-r from-green-600 to-emerald-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+              submitting()
+                ? "opacity-60 cursor-not-allowed"
+                : "hover:-translate-y-0.5 hover:shadow-lg"
+            } flex items-center gap-2`}
           >
             <svg
               width="16"
@@ -1054,6 +1479,16 @@ const AddTransaction: Component = () => {
           <button
             type="button"
             class="theme-bg-subtle theme-text-primary px-6 py-3 rounded-xl font-medium transition-all duration-300"
+            onClick={() =>
+              setFormData({
+                resident: "",
+                block: "",
+                amount: "",
+                type: "monthly",
+                method: "cash",
+                notes: "",
+              })
+            }
           >
             {t("resetForm")}
           </button>
@@ -1137,7 +1572,9 @@ const PaymentIntegration: Component = () => {
                 </svg>
               </div>
               <div>
-                <div class="font-semibold theme-text-primary">{t("qrisPayment")}</div>
+                <div class="font-semibold theme-text-primary">
+                  {t("qrisPayment")}
+                </div>
                 <div class="text-sm theme-text-secondary">
                   {t("quickResponseIndonesiaStandard")}
                 </div>
@@ -1195,7 +1632,9 @@ const PaymentIntegration: Component = () => {
                 </svg>
               </div>
               <div>
-                <div class="font-semibold theme-text-primary">{t("bankTransfer")}</div>
+                <div class="font-semibold theme-text-primary">
+                  {t("bankTransfer")}
+                </div>
                 <div class="text-sm theme-text-secondary">
                   {t("automaticBankIntegration")}
                 </div>
@@ -1238,7 +1677,9 @@ const PaymentIntegration: Component = () => {
                 </svg>
               </div>
               <div>
-                <div class="font-semibold theme-text-primary">{t("eWallet")}</div>
+                <div class="font-semibold theme-text-primary">
+                  {t("eWallet")}
+                </div>
                 <div class="text-sm theme-text-secondary">
                   {t("popularEwallets")}
                 </div>
@@ -1278,7 +1719,9 @@ const PaymentIntegration: Component = () => {
                 </svg>
               </div>
               <div>
-                <div class="font-semibold theme-text-primary">{t("onlineGateway")}</div>
+                <div class="font-semibold theme-text-primary">
+                  {t("onlineGateway")}
+                </div>
                 <div class="text-sm theme-text-secondary">
                   {t("midtransXenditPaypal")}
                 </div>
@@ -1322,7 +1765,9 @@ const PaymentIntegration: Component = () => {
               stroke-linejoin="round"
             />
           </svg>
-          <div class="font-semibold text-blue-800">{t("autoUpdateFeature")}</div>
+          <div class="font-semibold text-blue-800">
+            {t("autoUpdateFeature")}
+          </div>
         </div>
         <div class="text-sm text-blue-700">{t("autoUpdateDesc")}</div>
       </div>
@@ -1333,7 +1778,8 @@ const PaymentIntegration: Component = () => {
 // Main Finance Component
 const Finance: Component = () => {
   const { t } = useLanguage();
-  
+  // Components listen to 'finance:refresh' and reload their own data.
+
   return (
     <Layout>
       <div class="space-y-8">
@@ -1341,7 +1787,9 @@ const Finance: Component = () => {
         <Card class="mb-8">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t("financeManagement")}</h1>
+              <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                {t("financeManagement")}
+              </h1>
               <p class="text-gray-600 dark:text-slate-300 text-lg">
                 {t("financeDescription")}
               </p>

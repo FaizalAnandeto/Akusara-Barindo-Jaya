@@ -76,6 +76,12 @@ const StatusBadge: Component<{ status: string }> = (props) => {
 
 // Advanced Camera Monitoring System
 const AdvancedCameraSystem = () => {
+  // Mapping kamera ke link YouTube
+  const cameraStreams = {
+    1: "https://www.youtube.com/embed/ZLB5Oa-zvIE?autoplay=1",
+    2: "https://www.youtube.com/embed/y8VQX54g32I?autoplay=1",
+    3: "https://www.youtube.com/embed/SAhye_59q2A?autoplay=1",
+  };
   const { t } = useLanguage();
   const [cameras] = createSignal([
     {
@@ -242,49 +248,20 @@ const AdvancedCameraSystem = () => {
             </div>
           </div>
 
-          {/* Mock Video Display */}
+          {/* Camera Stream Display */}
           <div class="absolute inset-0 flex items-center justify-center">
-            <div class="text-center text-white">
-              <div class="mb-6 flex justify-center">
-                <div class="bg-gray-800 backdrop-blur-sm p-6 rounded-2xl border border-white/20">
-                  <svg
-                    width="72"
-                    height="72"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    class="text-white"
-                  >
-                    <path
-                      d="M23 7l-7 5 7 5V7z"
-                      fill="currentColor"
-                      opacity="0.9"
-                    />
-                    <rect
-                      x="1"
-                      y="5"
-                      width="15"
-                      height="14"
-                      rx="2"
-                      fill="currentColor"
-                      opacity="0.8"
-                    />
-                    <circle cx="8.5" cy="12" r="2" fill="white" opacity="0.6" />
-                    <path
-                      d="M1 7h15"
-                      stroke="white"
-                      stroke-width="0.5"
-                      opacity="0.4"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div class="text-xl font-medium mb-2">
-                {getCurrentCamera()?.name}
-              </div>
-              <div class="text-sm opacity-75 bg-black/20 px-4 py-2 rounded-lg backdrop-blur-sm">
-                {getCurrentCamera()?.resolution} @ {getCurrentCamera()?.fps}fps
-              </div>
-            </div>
+            {getCurrentCamera()?.status === "recording" && cameraStreams[selectedCamera()] ? (
+              <iframe
+                width="100%"
+                height="100%"
+                src={cameraStreams[selectedCamera()]}
+                title="YouTube live stream"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                class="w-full h-full rounded-xl"
+              ></iframe>
+            ) : null}
           </div>
         </div>
 
@@ -301,23 +278,36 @@ const AdvancedCameraSystem = () => {
                 onClick={() => setSelectedCamera(camera.id)}
               >
                 <div class="aspect-video bg-gray-800 dark:bg-slate-900 rounded-lg flex items-center justify-center mb-2 overflow-hidden relative">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    class="theme-text-tertiary"
-                  >
-                    <path d="M23 7l-7 5 7 5V7z" fill="currentColor" />
-                    <rect
-                      x="1"
-                      y="5"
-                      width="15"
-                      height="14"
-                      rx="2"
-                      fill="currentColor"
-                    />
-                  </svg>
+                  {camera.status === "recording" && cameraStreams[camera.id] ? (
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={cameraStreams[camera.id]}
+                      title={`YouTube live stream ${camera.name}`}
+                      frameborder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowfullscreen
+                      class="w-full h-full rounded-lg"
+                    ></iframe>
+                  ) : (
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      class="theme-text-tertiary"
+                    >
+                      <path d="M23 7l-7 5 7 5V7z" fill="currentColor" />
+                      <rect
+                        x="1"
+                        y="5"
+                        width="15"
+                        height="14"
+                        rx="2"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  )}
                   <Show when={camera.status === "recording"}>
                     <div class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg"></div>
                   </Show>
